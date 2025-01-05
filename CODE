@@ -1,0 +1,2974 @@
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <vector>
+#include <string>
+#include <algorithm>
+#include <iomanip>
+
+using namespace std;
+
+// Updated Structure for Station
+struct Station {
+    string stationID;         // Unique ID of the station
+    string stationName;       // Name of the station
+    string address;           // Address of the station
+    string contactNumber;     // Contact number
+    int numOfficers;          // Number of officers assigned to the station
+    int casesHandled;         // Total cases handled by the station
+    int trafficLightsManaged; // Number of traffic lights managed by the station
+    int camerasManaged;       // Number of cameras managed by the station
+};
+
+
+// Updated Structure for Officer with more fields
+struct Officer {
+    string officerID;          // Unique ID of the officer
+    string name;               // Name of the officer
+    string rank;               // Rank of the officer
+    string stationID;          // The ID of the station the officer is assigned to
+    string contactNumber;      // Officer's contact number
+    int numCasesHandled;       // Number of cases the officer has handled
+    int trafficViolations;     // Number of traffic violations the officer handled
+    int hoursWorked;           // Total hours worked by the officer
+    string shift;              // Officer's shift (e.g., "Morning", "Evening", "Night")
+};
+
+
+// Updated Structure for Arrest with additional fields
+struct Arrest {
+    string arrestID;        // Unique ID of the arrest
+    string arrestDate;      // Date of the arrest
+    string criminalName;    // Name of the criminal arrested
+    string caseID;          // The case ID related to the arrest
+    string officerID;       // The officer ID who made the arrest
+    string stationID;       // The station where the arrest was made
+    string location;        // Location where the arrest took place
+    string arrestReason;    // The reason for the arrest (e.g., theft, assault)
+};
+
+// Structure for Case
+struct Case {
+    string caseID;          // Unique Case Identifier
+    string title;           // Title of the Case
+    string description;     // Detailed description of the case
+    string reportedDate;    // Date when the case was reported
+    string status;          // Current status of the case (e.g., Open, Closed, Under Investigation)
+    string officerID;       // Officer in charge of the case
+    string stationID;       // Station handling the case
+    string priority;        // Priority level of the case (e.g., High, Medium, Low)
+    string investigationTeam; // Assigned investigation team (e.g., Homicide, Cyber Crimes)
+    vector<string> arrests; // List of arrest IDs associated with this case (e.g., ARR001, ARR002)
+};
+
+// Structure for Shift
+struct Shift {
+    string shiftID;
+    string officerID;
+    string stationID;
+    string startTime;
+    string endTime;
+};
+
+// Structure for Traffic Light
+// Structure for Traffic Light
+struct TrafficLight {
+    string lightID;
+    string location;
+    string status;
+    string lastMaintenanceDate;
+    string stationID;
+    int numAccidents;
+};
+
+// Structure for Camera
+struct Camera {
+    string cameraID;
+    string location;
+    string status;
+    string connectedToTrafficLight;
+    string stationID;
+    int accidentsCaptured;
+};
+
+// Structure for Response
+struct Response {
+    string responseID;
+    string incidentType;
+    string incidentLocation;
+    string reportedTime;
+    string resolvedTime;
+    string officerID;
+    string stationID;
+};
+
+struct Jail {
+    string criminalID;
+    string criminalName;
+    string arrestDate;
+    string releaseDate;
+    int daysRemaining; // Calculated field for time remaining in jail
+};
+
+
+// Function to read stations from a file
+// Function to read stations from a file
+void readStations(vector<Station>& stations) {
+    ifstream inFile("C:\\Users\\Satyam\\Desktop\\Project\\Project\\data\\stations.txt");
+
+    string line;
+
+    while (getline(inFile, line)) {
+        stringstream ss(line);
+        Station s;
+
+        // Read each field separated by commas
+        getline(ss, s.stationID, ',');
+        getline(ss, s.stationName, ',');
+        getline(ss, s.address, ',');
+        getline(ss, s.contactNumber, ',');
+
+        // Read the additional fields
+        ss >> s.numOfficers;
+        ss.ignore(); // Ignore the comma
+        ss >> s.casesHandled;
+        ss.ignore(); // Ignore the comma
+        ss >> s.trafficLightsManaged;
+        ss.ignore(); // Ignore the comma
+        ss >> s.camerasManaged;
+
+        // Push the station object into the vector
+        stations.push_back(s);
+    }
+
+    inFile.close();
+}
+
+
+
+// Function to read officers from a file
+void readOfficers(vector<Officer>& officers) {
+    ifstream inFile("C:\\Users\\Satyam\\Desktop\\Project\\Project\\data\\officers.txt");
+    string line;
+
+    while (getline(inFile, line)) {
+        stringstream ss(line);
+        Officer o;
+
+        // Read each field separated by commas
+        getline(ss, o.officerID, ',');
+        getline(ss, o.name, ',');
+        getline(ss, o.rank, ',');
+        getline(ss, o.stationID, ',');
+        getline(ss, o.contactNumber, ',');
+
+        // Read the additional fields
+        ss >> o.numCasesHandled;         // Read the number of cases handled
+        ss.ignore(); // To skip the comma
+        ss >> o.trafficViolations;       // Read the number of traffic violations
+        ss.ignore(); // To skip the comma
+        ss >> o.hoursWorked;             // Read the number of hours worked
+        ss.ignore(); // To skip the comma
+        getline(ss, o.shift);            // Read the shift (morning, evening, night)
+
+        // Add the Officer object to the vector
+        officers.push_back(o);
+    }
+    inFile.close();
+}
+
+
+
+// Function to read arrests from a file
+void readArrests(vector<Arrest>& arrests) {
+    ifstream inFile("C:\\Users\\Satyam\\Desktop\\Project\\Project\\data\\arrests.txt");
+    string line;
+
+    while (getline(inFile, line)) {
+        stringstream ss(line);
+        Arrest a;
+
+        // Read each field separated by commas
+        getline(ss, a.arrestID, ',');
+        getline(ss, a.arrestDate, ',');
+        getline(ss, a.criminalName, ',');
+        getline(ss, a.caseID, ',');
+        getline(ss, a.officerID, ',');
+        getline(ss, a.stationID, ',');      // New field: stationID
+        getline(ss, a.location, ',');       // New field: location
+        getline(ss, a.arrestReason, ',');   // New field: arrestReason
+
+        // Add the Arrest object to the vector
+        arrests.push_back(a);
+    }
+    inFile.close();
+}
+
+
+
+
+
+
+// Function to read cases from a file
+void readCases(vector<Case>& cases) {
+    ifstream inFile("C:\\Users\\Satyam\\Desktop\\Project\\Project\\data\\cases.txt");
+    string line;
+
+    while (getline(inFile, line)) {
+        stringstream ss(line);
+        Case c;
+
+        // Read each field separated by commas
+        getline(ss, c.caseID, ',');
+        getline(ss, c.title, ',');
+        getline(ss, c.description, ',');
+        getline(ss, c.reportedDate, ',');
+        getline(ss, c.status, ',');
+        getline(ss, c.officerID, ',');
+        getline(ss, c.stationID, ',');
+        getline(ss, c.priority, ',');
+        getline(ss, c.investigationTeam, ',');
+
+        // Read arrest IDs into vector
+        string arrestID;
+        while (getline(ss, arrestID, ',')) {
+            c.arrests.push_back(arrestID);
+        }
+
+        // Add the Case object to the vector
+        cases.push_back(c);
+    }
+    inFile.close();
+}
+
+
+
+// Function to read shifts from a file
+// Function to read shifts from a file
+void readShifts(vector<Shift>& shifts) {
+    ifstream inFile("C:\\Users\\Satyam\\Desktop\\Project\\Project\\data\\shifts.txt");
+    string line;
+
+    while (getline(inFile, line)) {
+        stringstream ss(line);
+        Shift s;
+
+        // Read each field separated by commas
+        getline(ss, s.shiftID, ',');
+        getline(ss, s.officerID, ',');
+        getline(ss, s.stationID, ',');
+        getline(ss, s.startTime, ',');
+        getline(ss, s.endTime, ',');
+
+        // Add the Shift object to the vector
+        shifts.push_back(s);
+    }
+    inFile.close();
+}
+
+
+// Function to read traffic lights from a file
+// Function to read traffic lights from a file
+void readTrafficLights(vector<TrafficLight>& trafficLights) {
+    ifstream inFile("C:\\Users\\Satyam\\Desktop\\Project\\Project\\data\\trafficlights.txt");
+
+    string line;
+
+    while (getline(inFile, line)) {
+        stringstream ss(line);
+        TrafficLight tl;
+
+        // Read each field separated by commas
+        getline(ss, tl.lightID, ',');
+        getline(ss, tl.location, ',');
+        getline(ss, tl.status, ',');
+        getline(ss, tl.lastMaintenanceDate, ',');
+        getline(ss, tl.stationID, ',');
+        ss >> tl.numAccidents;
+
+        // Push the traffic light object into the list
+        trafficLights.push_back(tl);
+    }
+
+    inFile.close();
+}
+
+
+
+// Function to read cameras from a file
+// Function to read cameras from a file
+void readCameras(vector<Camera>& cameras) {
+    ifstream inFile("C:\\Users\\Satyam\\Desktop\\Project\\Project\\data\\cameras.txt");
+
+    string line;
+
+    while (getline(inFile, line)) {
+        stringstream ss(line);
+        Camera cam;
+
+        // Read each field separated by commas
+        getline(ss, cam.cameraID, ',');
+        getline(ss, cam.location, ',');
+        getline(ss, cam.status, ',');
+        getline(ss, cam.connectedToTrafficLight, ',');
+        getline(ss, cam.stationID, ',');
+        ss >> cam.accidentsCaptured;
+
+        // Add the camera object to the vector
+        cameras.push_back(cam);
+    }
+
+    inFile.close();
+}
+
+
+// Function to read responses from a file
+void readResponses(vector<Response>& responses) {
+    ifstream inFile("D:\\DOCS\\DAA\\DAA PRoject\\responses.txt");
+    string line;
+
+    while (getline(inFile, line)) {
+        stringstream ss(line);
+        Response r;
+
+        // Read each field separated by commas
+        getline(ss, r.responseID, ',');
+        getline(ss, r.incidentType, ',');
+        getline(ss, r.incidentLocation, ',');
+        getline(ss, r.reportedTime, ',');
+        getline(ss, r.resolvedTime, ',');
+        getline(ss, r.officerID, ',');
+        getline(ss, r.stationID, ',');
+
+        // Add the Response object to the vector
+        responses.push_back(r);
+    }
+    inFile.close();
+}
+
+
+
+void readJailRecords(vector<Jail>& jailRecords) {
+    ifstream inFile("D:\\DOCS\\DAA\\DAA PRoject\\jail.txt");
+
+    string line;
+
+    while (getline(inFile, line)) {
+        stringstream ss(line);
+        Jail j;
+
+        // Read each field separated by commas
+        getline(ss, j.criminalID, ',');
+        getline(ss, j.criminalName, ',');
+        getline(ss, j.arrestDate, ',');
+        getline(ss, j.releaseDate, ',');
+
+        // Read the remaining days directly from the file
+        ss >> j.daysRemaining;
+
+        // Push the Jail object into the vector
+        jailRecords.push_back(j);
+    }
+    inFile.close();
+}
+
+
+// Function to display the stations
+void displayStations(const vector<Station>& stations) {
+    // Display the header for the table
+    cout << left << setw(10) << "Station ID"
+         << setw(25) << "Station Name"
+         << setw(40) << "Address"
+         << setw(15) << "Contact Number"
+         << setw(15) << "Officers"
+         << setw(15) << "Cases Handled"
+         << setw(20) << "Traffic Lights"
+         << setw(15) << "Cameras" << endl;
+    cout << "-------------------------------------------------------------------------------------------------" << endl;
+
+    // Loop through all the stations and display their details
+    for (const auto& station : stations) {
+        cout << left << setw(10) << station.stationID
+             << setw(25) << station.stationName
+             << setw(40) << station.address
+             << setw(15) << station.contactNumber
+             << setw(15) << station.numOfficers
+             << setw(15) << station.casesHandled
+             << setw(20) << station.trafficLightsManaged
+             << setw(15) << station.camerasManaged << endl;
+    }
+}
+
+// Function to display all officers
+void displayOfficers(const vector<Officer>& officers) {
+    cout << "Officers:\n";
+    for (const auto& officer : officers) {
+        cout << "ID: " << officer.officerID << ", Name: " << officer.name
+             << ", Rank: " << officer.rank << ", Station ID: " << officer.stationID
+             << ", Contact: " << officer.contactNumber
+             << ", Number of Cases Handled: " << officer.numCasesHandled
+             << ", Total Working Hours: " << officer.hoursWorked
+             << ", Shift: " << officer.shift << "\n";
+    }
+}
+
+// Function to display all arrests
+void displayArrests(const vector<Arrest>& arrests) {
+    cout << "Arrests:\n";
+    for (const auto& arrest : arrests) {
+        cout << "Arrest ID: " << arrest.arrestID << ", Date: " << arrest.arrestDate
+             << ", Criminal: " << arrest.criminalName << ", Case ID: " << arrest.caseID
+             << ", Officer ID: " << arrest.officerID << ", Station ID: " << arrest.stationID
+             << ", Location: " << arrest.location << ", Arrest Reason: " << arrest.arrestReason << "\n";
+    }
+}
+
+
+// Function to display all cases
+void displayCases(const vector<Case>& cases) {
+    cout << "Cases:\n";
+    for (const auto& c : cases) {
+        // Displaying case details including arrests, priority, and investigation team
+        cout << "Case ID: " << c.caseID
+             << ", Title: " << c.title
+             << ", Description: " << c.description
+             << ", Reported: " << c.reportedDate
+             << ", Status: " << c.status
+             << ", Officer ID: " << c.officerID
+             << ", Station ID: " << c.stationID
+             << ", Priority: " << c.priority
+             << ", Investigation Team: " << c.investigationTeam
+             << ", Arrests: ";
+
+        // Displaying all arrest IDs for the current case
+        if (!c.arrests.empty()) {
+            for (const auto& arrest : c.arrests) {
+                cout << arrest << " ";
+            }
+        } else {
+            cout << "None";
+        }
+
+        cout << "\n";
+    }
+}
+
+
+// Function to display all shifts
+void displayShifts(const vector<Shift>& shifts) {
+    cout << "Shifts:\n";
+    for (const auto& shift : shifts) {
+        cout << "Shift ID: " << shift.shiftID << ", Officer ID: " << shift.officerID
+             << ", Station ID: " << shift.stationID << ", Start: " << shift.startTime
+             << ", End: " << shift.endTime << "\n";
+    }
+}
+
+// Function to display all traffic lights
+void displayTrafficLights(const vector<TrafficLight>& trafficLights) {
+    cout << "Traffic Lights:\n";
+    for (const auto& tl : trafficLights) {
+        cout << "Light ID: " << tl.lightID << ", Location: " << tl.location
+             << ", Status: " << tl.status << ", Last Maintenance: " << tl.lastMaintenanceDate
+             << ", Station ID: " << tl.stationID << "\n";
+    }
+}
+
+// Function to display all cameras
+void displayCameras(const vector<Camera>& cameras) {
+    cout << "Cameras:\n";
+    for (const auto& camera : cameras) {
+        cout << "Camera ID: " << camera.cameraID << ", Location: " << camera.location
+             << ", Status: " << camera.status << ", Traffic Light ID: " << camera.connectedToTrafficLight
+             << ", Station ID: " << camera.stationID << "\n";
+    }
+}
+
+// Function to display all responses
+void displayResponses(const vector<Response>& responses) {
+    cout << "Responses:\n";
+    for (const auto& response : responses) {
+        cout << "Response ID: " << response.responseID << ", Incident Type: " << response.incidentType
+             << ", Location: " << response.incidentLocation << ", Reported: " << response.reportedTime
+             << ", Resolved: " << response.resolvedTime << ", Officer ID: " << response.officerID
+             << ", Station ID: " << response.stationID << "\n";
+    }
+}
+
+// Function to display all jail records
+void displayJailRecords(const vector<Jail>& jailRecords) {
+    cout << "Jail Records:\n";
+    for (const auto& jail : jailRecords) {
+        cout << "Criminal ID: " << jail.criminalID
+             << ", Name: " << jail.criminalName
+             << ", Arrest Date: " << jail.arrestDate
+             << ", Release Date: " << jail.releaseDate
+             << ", Days Remaining: " << jail.daysRemaining << "\n";
+    }
+}
+
+
+// Function to build the KMP prefix table
+vector<int> buildPrefixTable(const string& pattern) {
+    int m = pattern.size();
+    vector<int> prefix(m, 0);
+    int j = 0; // Length of previous longest prefix suffix
+    for (int i = 1; i < m; ++i) {
+        if (pattern[i] == pattern[j]) {
+            j++;
+            prefix[i] = j;
+        } else {
+            if (j != 0) {
+                j = prefix[j - 1];
+                i--; // Stay on the same character
+            } else {
+                prefix[i] = 0;
+            }
+        }
+    }
+    return prefix;
+}
+
+// KMP search function
+bool KMPMatch(const string& text, const string& pattern) {
+    int n = text.size();
+    int m = pattern.size();
+    if (m == 0) return true; // Empty pattern matches everything
+
+    vector<int> prefix = buildPrefixTable(pattern);
+    int i = 0; // Index for text
+    int j = 0; // Index for pattern
+
+    while (i < n) {
+        if (text[i] == pattern[j]) {
+            i++;
+            j++;
+        }
+
+        if (j == m) {
+            return true; // Match found
+        } else if (i < n && text[i] != pattern[j]) {
+            if (j != 0) {
+                j = prefix[j - 1];
+            } else {
+                i++;
+            }
+        }
+    }
+    return false; // No match found
+}
+
+
+// Function to search for a station by ID using KMP
+void searchStationByID(const vector<Station>& stations, const string& id) {
+    bool found = false;
+    for (const auto& station : stations) {
+        // Use KMP to match the stationID with the provided id
+        if (KMPMatch(station.stationID, id)) {
+            // Display station details
+            cout << "Station Found: \n";
+            cout << "ID: " << station.stationID << "\n";
+            cout << "Name: " << station.stationName << "\n";
+            cout << "Address: " << station.address << "\n";
+            cout << "Contact: " << station.contactNumber << "\n";
+            cout << "Officers: " << station.numOfficers << "\n";
+            cout << "Cases Handled: " << station.casesHandled << "\n";
+            cout << "Traffic Lights Managed: " << station.trafficLightsManaged << "\n";
+            cout << "Cameras Managed: " << station.camerasManaged << "\n";
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        cout << "Station with ID " << id << " not found.\n";
+    }
+}
+
+// Function to search for a station by Name using KMP
+void searchStationByName(const vector<Station>& stations, const string& name) {
+    bool found = false;
+    for (const auto& station : stations) {
+        // Use KMP to check if the station name contains the search term
+        if (KMPMatch(station.stationName, name)) {
+            // Display all station details including the new fields
+            cout << "Station Found: \n";
+            cout << "ID: " << station.stationID << "\n";
+            cout << "Name: " << station.stationName << "\n";
+            cout << "Address: " << station.address << "\n";
+            cout << "Contact: " << station.contactNumber << "\n";
+            cout << "Officers: " << station.numOfficers << "\n";
+            cout << "Cases Handled: " << station.casesHandled << "\n";
+            cout << "Traffic Lights Managed: " << station.trafficLightsManaged << "\n";
+            cout << "Cameras Managed: " << station.camerasManaged << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "Station with name '" << name << "' not found.\n";
+    }
+}
+
+// Function to search for a station by Address
+void searchStationByAddress(const vector<Station>& stations, const string& address) {
+    bool found = false;
+    for (const auto& station : stations) {
+        if (KMPMatch(station.address, address)) {  // Using KMP for partial matching
+            cout << "Station Found: \n";
+            cout << "ID: " << station.stationID << "\n";
+            cout << "Name: " << station.stationName << "\n";
+            cout << "Address: " << station.address << "\n";
+            cout << "Contact: " << station.contactNumber << "\n";
+            cout << "Officers: " << station.numOfficers << "\n";
+            cout << "Cases Handled: " << station.casesHandled << "\n";
+            cout << "Traffic Lights Managed: " << station.trafficLightsManaged << "\n";
+            cout << "Cameras Managed: " << station.camerasManaged << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "Station with address containing '" << address << "' not found.\n";
+    }
+}
+
+// Function to search for a station by Contact Number
+void searchStationByContactNumber(const vector<Station>& stations, const string& contactNumber) {
+    bool found = false;
+    for (const auto& station : stations) {
+        if (KMPMatch(station.contactNumber, contactNumber)) {  // Using KMP for partial matching
+            cout << "Station Found: \n";
+            cout << "ID: " << station.stationID << "\n";
+            cout << "Name: " << station.stationName << "\n";
+            cout << "Address: " << station.address << "\n";
+            cout << "Contact: " << station.contactNumber << "\n";
+            cout << "Officers: " << station.numOfficers << "\n";
+            cout << "Cases Handled: " << station.casesHandled << "\n";
+            cout << "Traffic Lights Managed: " << station.trafficLightsManaged << "\n";
+            cout << "Cameras Managed: " << station.camerasManaged << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "Station with contact number '" << contactNumber << "' not found.\n";
+    }
+}
+
+// Function to search for an officer by ID
+void searchOfficerByID(const vector<Officer>& officers, const string& id) {
+    bool found = false;
+    for (const auto& officer : officers) {
+        if (officer.officerID == id) {
+            cout << "Officer Found: ID: " << officer.officerID << ", Name: " << officer.name
+                 << ", Rank: " << officer.rank << ", Station ID: " << officer.stationID
+                 << ", Contact: " << officer.contactNumber
+                 << ", Number of Cases Handled: " << officer.numCasesHandled
+                 << ", Traffic Violations Handled: " << officer.trafficViolations
+                 << ", Hours Worked: " << officer.hoursWorked
+                 << ", Shift: " << officer.shift << "\n";
+            found = true;
+            break; // Exit loop since ID is unique
+        }
+    }
+    if (!found) {
+        cout << "Officer with ID " << id << " not found.\n";
+    }
+}
+
+// Updated searchOfficerByName using KMP
+void searchOfficerByName(const vector<Officer>& officers, const string& name) {
+    bool found = false;
+    for (const auto& officer : officers) {
+        if (KMPMatch(officer.name, name)) {
+            cout << "Officer Found: ID: " << officer.officerID << ", Name: " << officer.name
+                 << ", Rank: " << officer.rank << ", Station ID: " << officer.stationID
+                 << ", Contact: " << officer.contactNumber
+                 << ", Number of Cases Handled: " << officer.numCasesHandled
+                 << ", Traffic Violations Handled: " << officer.trafficViolations
+                 << ", Hours Worked: " << officer.hoursWorked
+                 << ", Shift: " << officer.shift << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "Officer with name '" << name << "' not found.\n";
+    }
+}
+
+
+// Updated searchOfficerByRank using KMP
+void searchOfficerByRank(const vector<Officer>& officers, const string& rank) {
+    bool found = false;
+    for (const auto& officer : officers) {
+        if (KMPMatch(officer.rank, rank)) {
+            cout << "Officer Found: ID: " << officer.officerID << ", Name: " << officer.name
+                 << ", Rank: " << officer.rank << ", Station ID: " << officer.stationID
+                 << ", Contact: " << officer.contactNumber
+                 << ", Number of Cases Handled: " << officer.numCasesHandled
+                 << ", Traffic Violations Handled: " << officer.trafficViolations
+                 << ", Hours Worked: " << officer.hoursWorked
+                 << ", Shift: " << officer.shift << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No officers found with rank: " << rank << ".\n";
+    }
+}
+
+// Updated searchOfficerByStationID using KMP
+void searchOfficerByStationID(const vector<Officer>& officers, const string& stationID) {
+    bool found = false;
+    for (const auto& officer : officers) {
+        if (KMPMatch(officer.stationID, stationID)) {
+            cout << "Officer Found: ID: " << officer.officerID << ", Name: " << officer.name
+                 << ", Rank: " << officer.rank << ", Station ID: " << officer.stationID
+                 << ", Contact: " << officer.contactNumber
+                 << ", Number of Cases Handled: " << officer.numCasesHandled
+                 << ", Traffic Violations Handled: " << officer.trafficViolations
+                 << ", Hours Worked: " << officer.hoursWorked
+                 << ", Shift: " << officer.shift << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No officers found at Station ID: " << stationID << ".\n";
+    }
+}
+
+
+// Updated searchOfficerByContact using KMP
+void searchOfficerByContact(const vector<Officer>& officers, const string& contact) {
+    bool found = false;
+    for (const auto& officer : officers) {
+        if (KMPMatch(officer.contactNumber, contact)) {
+            cout << "Officer Found: ID: " << officer.officerID << ", Name: " << officer.name
+                 << ", Rank: " << officer.rank << ", Station ID: " << officer.stationID
+                 << ", Contact: " << officer.contactNumber
+                 << ", Number of Cases Handled: " << officer.numCasesHandled
+                 << ", Traffic Violations Handled: " << officer.trafficViolations
+                 << ", Hours Worked: " << officer.hoursWorked
+                 << ", Shift: " << officer.shift << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No officers found with contact number: " << contact << ".\n";
+    }
+}
+
+
+// Search Criminal by Arrest ID using KMP
+void searchCriminalByArrestID(const vector<Arrest>& arrests, const string& arrestID) {
+    bool found = false;
+    for (const auto& arrest : arrests) {
+        if (arrest.arrestID == arrestID) {
+            cout << "Criminal Found: Arrest ID: " << arrest.arrestID
+                 << ", Criminal Name: " << arrest.criminalName
+                 << ", Case ID: " << arrest.caseID
+                 << ", Officer ID: " << arrest.officerID
+                 << ", Arrest Date: " << arrest.arrestDate
+                 << ", Station ID: " << arrest.stationID
+                 << ", Location: " << arrest.location
+                 << ", Arrest Reason: " << arrest.arrestReason << "\n";
+            found = true;
+            break; // Exit loop since arrest ID is unique
+        }
+    }
+    if (!found) {
+        cout << "Criminal with Arrest ID " << arrestID << " not found.\n";
+    }
+}
+
+
+// Search Criminals by Arrest Date
+void searchCriminalByArrestDate(const vector<Arrest>& arrests, const string& arrestDate) {
+    bool found = false;
+    for (const auto& arrest : arrests) {
+        if (arrest.arrestDate == arrestDate) {
+            cout << "Criminal Found: Arrest ID: " << arrest.arrestID
+                 << ", Criminal Name: " << arrest.criminalName
+                 << ", Case ID: " << arrest.caseID
+                 << ", Officer ID: " << arrest.officerID
+                 << ", Arrest Date: " << arrest.arrestDate
+                 << ", Station ID: " << arrest.stationID
+                 << ", Location: " << arrest.location
+                 << ", Arrest Reason: " << arrest.arrestReason << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No criminals found with Arrest Date " << arrestDate << ".\n";
+    }
+}
+
+
+// Search Criminal by Name
+void searchCriminalByName(const vector<Arrest>& arrests, const string& criminalName) {
+    bool found = false;
+    for (const auto& arrest : arrests) {
+        if (KMPMatch(arrest.criminalName, criminalName)) {  // Using KMP for name matching
+            cout << "Criminal Found: Arrest ID: " << arrest.arrestID
+                 << ", Criminal Name: " << arrest.criminalName
+                 << ", Case ID: " << arrest.caseID
+                 << ", Officer ID: " << arrest.officerID
+                 << ", Arrest Date: " << arrest.arrestDate
+                 << ", Station ID: " << arrest.stationID
+                 << ", Location: " << arrest.location
+                 << ", Arrest Reason: " << arrest.arrestReason << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No criminal found with Name " << criminalName << ".\n";
+    }
+}
+
+
+// Search Criminal by Case ID
+void searchCriminalByCaseID(const vector<Arrest>& arrests, const string& caseID) {
+    bool found = false;
+    for (const auto& arrest : arrests) {
+        if (arrest.caseID == caseID) {
+            cout << "Criminal Found: Arrest ID: " << arrest.arrestID
+                 << ", Criminal Name: " << arrest.criminalName
+                 << ", Case ID: " << arrest.caseID
+                 << ", Officer ID: " << arrest.officerID
+                 << ", Arrest Date: " << arrest.arrestDate
+                 << ", Station ID: " << arrest.stationID
+                 << ", Location: " << arrest.location
+                 << ", Arrest Reason: " << arrest.arrestReason << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No criminal found with Case ID " << caseID << ".\n";
+    }
+}
+
+// Search Criminal by Officer ID
+void searchCriminalByOfficerID(const vector<Arrest>& arrests, const string& officerID) {
+    bool found = false;
+    for (const auto& arrest : arrests) {
+        if (arrest.officerID == officerID) {
+            cout << "Criminal Found: Arrest ID: " << arrest.arrestID
+                 << ", Criminal Name: " << arrest.criminalName
+                 << ", Case ID: " << arrest.caseID
+                 << ", Officer ID: " << arrest.officerID
+                 << ", Arrest Date: " << arrest.arrestDate
+                 << ", Station ID: " << arrest.stationID
+                 << ", Location: " << arrest.location
+                 << ", Arrest Reason: " << arrest.arrestReason << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No criminal found with Officer ID " << officerID << ".\n";
+    }
+}
+
+
+// Search Case by Case ID
+void searchCaseByCaseID(const vector<Case>& cases, const string& caseID) {
+    bool found = false;
+    for (const auto& c : cases) {
+        if (c.caseID == caseID) {
+            cout << "Case Found:\n";
+            cout << "Case ID: " << c.caseID << "\n";
+            cout << "Title: " << c.title << "\n";
+            cout << "Description: " << c.description << "\n";
+            cout << "Reported Date: " << c.reportedDate << "\n";
+            cout << "Status: " << c.status << "\n";
+            cout << "Officer ID: " << c.officerID << "\n";
+            cout << "Station ID: " << c.stationID << "\n";
+            cout << "Priority: " << c.priority << "\n";
+            cout << "Investigation Team: " << c.investigationTeam << "\n";
+
+            // Displaying all arrest IDs for the current case
+            cout << "Arrests: ";
+            if (!c.arrests.empty()) {
+                for (const auto& arrest : c.arrests) {
+                    cout << arrest << " ";
+                }
+            } else {
+                cout << "None";
+            }
+            cout << "\n";
+
+            found = true;
+            break; // Case ID is unique; exit the loop after finding it
+        }
+    }
+    if (!found) {
+        cout << "Case with Case ID " << caseID << " not found.\n";
+    }
+}
+
+
+
+// Function to search cases by title using KMP
+void searchCasesByTitle(const vector<Case>& cases, const string& title) {
+    bool found = false;
+    for (const auto& caseData : cases) {
+        if (KMPMatch(caseData.title, title)) {
+            cout << "Case Found:\n";
+            cout << "  Case ID: " << caseData.caseID << "\n";
+            cout << "  Title: " << caseData.title << "\n";
+            cout << "  Description: " << caseData.description << "\n";
+            cout << "  Reported Date: " << caseData.reportedDate << "\n";
+            cout << "  Status: " << caseData.status << "\n";
+            cout << "  Officer ID: " << caseData.officerID << "\n";
+            cout << "  Station ID: " << caseData.stationID << "\n";
+            cout << "  Priority: " << caseData.priority << "\n";
+            cout << "  Investigation Team: " << caseData.investigationTeam << "\n";
+
+            // Displaying all arrest IDs for the current case
+            cout << "  Arrests: ";
+            if (!caseData.arrests.empty()) {
+                for (const auto& arrest : caseData.arrests) {
+                    cout << arrest << " ";
+                }
+            } else {
+                cout << "None";
+            }
+            cout << "\n\n";
+
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No cases found with title containing \"" << title << "\".\n";
+    }
+}
+
+
+// Search Case by Description
+void searchCaseByDescription(const vector<Case>& cases, const string& description) {
+    bool found = false;
+    for (const auto& c : cases) {
+        if (c.description.find(description) != string::npos) { // Case-insensitive substring match
+            cout << "Case Found:\n";
+            cout << "  Case ID: " << c.caseID << "\n";
+            cout << "  Title: " << c.title << "\n";
+            cout << "  Description: " << c.description << "\n";
+            cout << "  Reported Date: " << c.reportedDate << "\n";
+            cout << "  Status: " << c.status << "\n";
+            cout << "  Officer ID: " << c.officerID << "\n";
+            cout << "  Station ID: " << c.stationID << "\n";
+            cout << "  Priority: " << c.priority << "\n";
+            cout << "  Investigation Team: " << c.investigationTeam << "\n";
+
+            // Displaying all arrest IDs for the current case
+            cout << "  Arrests: ";
+            if (!c.arrests.empty()) {
+                for (const auto& arrest : c.arrests) {
+                    cout << arrest << " ";
+                }
+            } else {
+                cout << "None";
+            }
+            cout << "\n\n";
+
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No cases found with the description containing \"" << description << "\".\n";
+    }
+}
+
+
+// Search Case by Reported Date
+void searchCaseByReportedDate(const vector<Case>& cases, const string& reportedDate) {
+    bool found = false;
+    for (const auto& c : cases) {
+        if (c.reportedDate == reportedDate) { // Match exact reported date
+            cout << "Case Found:\n";
+            cout << "  Case ID: " << c.caseID << "\n";
+            cout << "  Title: " << c.title << "\n";
+            cout << "  Description: " << c.description << "\n";
+            cout << "  Reported Date: " << c.reportedDate << "\n";
+            cout << "  Status: " << c.status << "\n";
+            cout << "  Officer ID: " << c.officerID << "\n";
+            cout << "  Station ID: " << c.stationID << "\n";
+            cout << "  Priority: " << c.priority << "\n";
+            cout << "  Investigation Team: " << c.investigationTeam << "\n";
+
+            // Displaying all arrest IDs for the current case
+            cout << "  Arrests: ";
+            if (!c.arrests.empty()) {
+                for (const auto& arrest : c.arrests) {
+                    cout << arrest << " ";
+                }
+            } else {
+                cout << "None";
+            }
+            cout << "\n\n";
+
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No cases found with the reported date \"" << reportedDate << "\".\n";
+    }
+}
+
+
+
+// Search Case by Status
+void searchCaseByStatus(const vector<Case>& cases, const string& status) {
+    bool found = false;
+    for (const auto& c : cases) {
+        if (c.status == status) { // Match exact status
+            cout << "Case Found:\n";
+            cout << "  Case ID: " << c.caseID << "\n";
+            cout << "  Title: " << c.title << "\n";
+            cout << "  Description: " << c.description << "\n";
+            cout << "  Reported Date: " << c.reportedDate << "\n";
+            cout << "  Status: " << c.status << "\n";
+            cout << "  Officer ID: " << c.officerID << "\n";
+            cout << "  Station ID: " << c.stationID << "\n";
+            cout << "  Priority: " << c.priority << "\n";
+            cout << "  Investigation Team: " << c.investigationTeam << "\n";
+
+            // Displaying all arrest IDs for the current case
+            cout << "  Arrests: ";
+            if (!c.arrests.empty()) {
+                for (const auto& arrest : c.arrests) {
+                    cout << arrest << " ";
+                }
+            } else {
+                cout << "None";
+            }
+            cout << "\n\n";
+
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No cases found with the status \"" << status << "\".\n";
+    }
+}
+
+
+// Search Case by Officer ID
+void searchCaseByOfficerID(const vector<Case>& cases, const string& officerID) {
+    bool found = false;
+    for (const auto& c : cases) {
+        if (c.officerID == officerID) { // Match the officer ID
+            cout << "Case Found:\n";
+            cout << "  Case ID: " << c.caseID << "\n";
+            cout << "  Title: " << c.title << "\n";
+            cout << "  Description: " << c.description << "\n";
+            cout << "  Reported Date: " << c.reportedDate << "\n";
+            cout << "  Status: " << c.status << "\n";
+            cout << "  Officer ID: " << c.officerID << "\n";
+            cout << "  Station ID: " << c.stationID << "\n";
+            cout << "  Priority: " << c.priority << "\n";
+            cout << "  Investigation Team: " << c.investigationTeam << "\n";
+
+            // Displaying all arrest IDs for the current case
+            cout << "  Arrests: ";
+            if (!c.arrests.empty()) {
+                for (const auto& arrest : c.arrests) {
+                    cout << arrest << " ";
+                }
+            } else {
+                cout << "None";
+            }
+            cout << "\n\n";
+
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No cases found with Officer ID \"" << officerID << "\".\n";
+    }
+}
+
+
+// Search Case by Station ID
+void searchCaseByStationID(const vector<Case>& cases, const string& stationID) {
+    bool found = false;
+    for (const auto& c : cases) {
+        if (c.stationID == stationID) { // Match the station ID
+            cout << "Case Found:\n";
+            cout << "  Case ID: " << c.caseID << "\n";
+            cout << "  Title: " << c.title << "\n";
+            cout << "  Description: " << c.description << "\n";
+            cout << "  Reported Date: " << c.reportedDate << "\n";
+            cout << "  Status: " << c.status << "\n";
+            cout << "  Officer ID: " << c.officerID << "\n";
+            cout << "  Station ID: " << c.stationID << "\n";
+            cout << "  Priority: " << c.priority << "\n";
+            cout << "  Investigation Team: " << c.investigationTeam << "\n";
+
+            // Displaying all arrest IDs for the current case
+            cout << "  Arrests: ";
+            if (!c.arrests.empty()) {
+                for (const auto& arrest : c.arrests) {
+                    cout << arrest << " ";
+                }
+            } else {
+                cout << "None";
+            }
+            cout << "\n\n";
+
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No cases found with Station ID \"" << stationID << "\".\n";
+    }
+}
+
+
+// Search Shift by Shift ID
+void searchShiftByShiftID(const vector<Shift>& shifts, const string& shiftID) {
+    bool found = false;
+    for (const auto& shift : shifts) {
+        if (shift.shiftID == shiftID) { // Match the shift ID
+            cout << "Shift Found:\n";
+            cout << "Shift ID: " << shift.shiftID << "\n";
+            cout << "Officer ID: " << shift.officerID << "\n";
+            cout << "Station ID: " << shift.stationID << "\n";
+            cout << "Start Time: " << shift.startTime << "\n";
+            cout << "End Time: " << shift.endTime << "\n\n";
+            found = true;
+            break;
+        }
+    }
+    if (!found) {
+        cout << "No shift found with Shift ID \"" << shiftID << "\".\n";
+    }
+}
+
+
+// Search Shift by Officer ID
+void searchShiftByOfficerID(const vector<Shift>& shifts, const string& officerID) {
+    bool found = false;
+    for (const auto& shift : shifts) {
+        if (shift.officerID == officerID) { // Match the officer ID
+            cout << "Shift Found:\n";
+            cout << "Shift ID: " << shift.shiftID << "\n";
+            cout << "Officer ID: " << shift.officerID << "\n";
+            cout << "Station ID: " << shift.stationID << "\n";
+            cout << "Start Time: " << shift.startTime << "\n";
+            cout << "End Time: " << shift.endTime << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No shifts found for Officer ID \"" << officerID << "\".\n";
+    }
+}
+
+// Search Shift by Station ID
+void searchShiftByStationID(const vector<Shift>& shifts, const string& stationID) {
+    bool found = false;
+    for (const auto& shift : shifts) {
+        if (shift.stationID == stationID) { // Match the station ID
+            cout << "Shift Found:\n";
+            cout << "Shift ID: " << shift.shiftID << "\n";
+            cout << "Officer ID: " << shift.officerID << "\n";
+            cout << "Station ID: " << shift.stationID << "\n";
+            cout << "Start Time: " << shift.startTime << "\n";
+            cout << "End Time: " << shift.endTime << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No shifts found for Station ID \"" << stationID << "\".\n";
+    }
+}
+
+// Search Shift by Start Time
+void searchShiftByStartTime(const vector<Shift>& shifts, const string& startTime) {
+    bool found = false;
+    for (const auto& shift : shifts) {
+        if (shift.startTime == startTime) { // Match the start time
+            cout << "Shift Found:\n";
+            cout << "Shift ID: " << shift.shiftID << "\n";
+            cout << "Officer ID: " << shift.officerID << "\n";
+            cout << "Station ID: " << shift.stationID << "\n";
+            cout << "Start Time: " << shift.startTime << "\n";
+            cout << "End Time: " << shift.endTime << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No shifts found with Start Time \"" << startTime << "\".\n";
+    }
+}
+
+// Search Shift by End Time
+void searchShiftByEndTime(const vector<Shift>& shifts, const string& endTime) {
+    bool found = false;
+    for (const auto& shift : shifts) {
+        if (shift.endTime == endTime) { // Match the end time
+            cout << "Shift Found:\n";
+            cout << "Shift ID: " << shift.shiftID << "\n";
+            cout << "Officer ID: " << shift.officerID << "\n";
+            cout << "Station ID: " << shift.stationID << "\n";
+            cout << "Start Time: " << shift.startTime << "\n";
+            cout << "End Time: " << shift.endTime << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No shifts found with End Time \"" << endTime << "\".\n";
+    }
+}
+
+// Search Traffic Light by Light ID
+void searchTrafficLightByLightID(const vector<TrafficLight>& trafficLights, const string& lightID) {
+    bool found = false;
+    for (const auto& light : trafficLights) {
+        if (light.lightID == lightID) { // Match the Light ID
+            cout << "Traffic Light Found:\n";
+            cout << "Light ID: " << light.lightID << "\n";
+            cout << "Location: " << light.location << "\n";
+            cout << "Status: " << light.status << "\n";
+            cout << "Last Maintenance Date: " << light.lastMaintenanceDate << "\n";
+            cout << "Station ID: " << light.stationID << "\n\n";
+            found = true;
+            break; // Exit loop since Light ID is unique
+        }
+    }
+    if (!found) {
+        cout << "Traffic Light with Light ID " << lightID << " not found.\n";
+    }
+}
+
+// Search Traffic Light by Location
+void searchTrafficLightByLocation(const vector<TrafficLight>& trafficLights, const string& location) {
+    bool found = false;
+    for (const auto& light : trafficLights) {
+        if (light.location == location) { // Match the Location
+            cout << "Traffic Light Found:\n";
+            cout << "Light ID: " << light.lightID << "\n";
+            cout << "Location: " << light.location << "\n";
+            cout << "Status: " << light.status << "\n";
+            cout << "Last Maintenance Date: " << light.lastMaintenanceDate << "\n";
+            cout << "Station ID: " << light.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Traffic Lights found at the location: " << location << "\n";
+    }
+}
+
+// Search Traffic Light by Status
+void searchTrafficLightByStatus(const vector<TrafficLight>& trafficLights, const string& status) {
+    bool found = false;
+    for (const auto& light : trafficLights) {
+        if (light.status == status) { // Match the Status
+            cout << "Traffic Light Found:\n";
+            cout << "Light ID: " << light.lightID << "\n";
+            cout << "Location: " << light.location << "\n";
+            cout << "Status: " << light.status << "\n";
+            cout << "Last Maintenance Date: " << light.lastMaintenanceDate << "\n";
+            cout << "Station ID: " << light.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Traffic Lights found with the status: " << status << "\n";
+    }
+}
+
+// Search Traffic Light by Last Maintenance Date
+void searchTrafficLightByLastMaintenanceDate(const vector<TrafficLight>& trafficLights, const string& lastMaintenanceDate) {
+    bool found = false;
+    for (const auto& light : trafficLights) {
+        if (light.lastMaintenanceDate == lastMaintenanceDate) { // Match the Last Maintenance Date
+            cout << "Traffic Light Found:\n";
+            cout << "Light ID: " << light.lightID << "\n";
+            cout << "Location: " << light.location << "\n";
+            cout << "Status: " << light.status << "\n";
+            cout << "Last Maintenance Date: " << light.lastMaintenanceDate << "\n";
+            cout << "Station ID: " << light.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Traffic Lights found with the last maintenance date: " << lastMaintenanceDate << "\n";
+    }
+}
+
+// Search Traffic Light by Station ID
+void searchTrafficLightByStationID(const vector<TrafficLight>& trafficLights, const string& stationID) {
+    bool found = false;
+    for (const auto& light : trafficLights) {
+        if (light.stationID == stationID) { // Match the Station ID
+            cout << "Traffic Light Found:\n";
+            cout << "Light ID: " << light.lightID << "\n";
+            cout << "Location: " << light.location << "\n";
+            cout << "Status: " << light.status << "\n";
+            cout << "Last Maintenance Date: " << light.lastMaintenanceDate << "\n";
+            cout << "Station ID: " << light.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Traffic Lights found at Station ID: " << stationID << "\n";
+    }
+}
+
+// Search Camera by Camera ID
+void searchCameraByCameraID(const vector<Camera>& cameras, const string& cameraID) {
+    bool found = false;
+    for (const auto& camera : cameras) {
+        if (camera.cameraID == cameraID) { // Match the Camera ID
+            cout << "Camera Found:\n";
+            cout << "Camera ID: " << camera.cameraID << "\n";
+            cout << "Location: " << camera.location << "\n";
+            cout << "Status: " << camera.status << "\n";
+            cout << "Connected to Traffic Light: " << camera.connectedToTrafficLight << "\n";
+            cout << "Station ID: " << camera.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Camera found with Camera ID: " << cameraID << "\n";
+    }
+}
+
+// Search Camera by Location
+void searchCameraByLocation(const vector<Camera>& cameras, const string& location) {
+    bool found = false;
+    for (const auto& camera : cameras) {
+        if (camera.location == location) { // Match the Location
+            cout << "Camera Found:\n";
+            cout << "Camera ID: " << camera.cameraID << "\n";
+            cout << "Location: " << camera.location << "\n";
+            cout << "Status: " << camera.status << "\n";
+            cout << "Connected to Traffic Light: " << camera.connectedToTrafficLight << "\n";
+            cout << "Station ID: " << camera.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Camera found at Location: " << location << "\n";
+    }
+}
+
+// Search Camera by Status
+void searchCameraByStatus(const vector<Camera>& cameras, const string& status) {
+    bool found = false;
+    for (const auto& camera : cameras) {
+        if (camera.status == status) { // Match the Status
+            cout << "Camera Found:\n";
+            cout << "Camera ID: " << camera.cameraID << "\n";
+            cout << "Location: " << camera.location << "\n";
+            cout << "Status: " << camera.status << "\n";
+            cout << "Connected to Traffic Light: " << camera.connectedToTrafficLight << "\n";
+            cout << "Station ID: " << camera.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Camera found with Status: " << status << "\n";
+    }
+}
+
+// Search Camera by Connected to Traffic Light
+void searchCameraByConnectedToTrafficLight(const vector<Camera>& cameras, const string& trafficLightID) {
+    bool found = false;
+    for (const auto& camera : cameras) {
+        if (camera.connectedToTrafficLight == trafficLightID) { // Match the connected Traffic Light ID
+            cout << "Camera Found:\n";
+            cout << "Camera ID: " << camera.cameraID << "\n";
+            cout << "Location: " << camera.location << "\n";
+            cout << "Status: " << camera.status << "\n";
+            cout << "Connected to Traffic Light: " << camera.connectedToTrafficLight << "\n";
+            cout << "Station ID: " << camera.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Camera found connected to Traffic Light: " << trafficLightID << "\n";
+    }
+}
+
+// Search Camera by Station ID
+void searchCameraByStationID(const vector<Camera>& cameras, const string& stationID) {
+    bool found = false;
+    for (const auto& camera : cameras) {
+        if (camera.stationID == stationID) { // Match the Station ID
+            cout << "Camera Found:\n";
+            cout << "Camera ID: " << camera.cameraID << "\n";
+            cout << "Location: " << camera.location << "\n";
+            cout << "Status: " << camera.status << "\n";
+            cout << "Connected to Traffic Light: " << camera.connectedToTrafficLight << "\n";
+            cout << "Station ID: " << camera.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Camera found for Station ID: " << stationID << "\n";
+    }
+}
+
+// Search Response by Response ID
+void searchResponseByResponseID(const vector<Response>& responses, const string& responseID) {
+    bool found = false;
+    for (const auto& response : responses) {
+        if (response.responseID == responseID) { // Match the Response ID
+            cout << "Response Found:\n";
+            cout << "Response ID: " << response.responseID << "\n";
+            cout << "Incident Type: " << response.incidentType << "\n";
+            cout << "Incident Location: " << response.incidentLocation << "\n";
+            cout << "Reported Time: " << response.reportedTime << "\n";
+            cout << "Resolved Time: " << response.resolvedTime << "\n";
+            cout << "Officer ID: " << response.officerID << "\n";
+            cout << "Station ID: " << response.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Response found for Response ID: " << responseID << "\n";
+    }
+}
+
+// Search Response by Incident Type
+void searchResponseByIncidentType(const vector<Response>& responses, const string& incidentType) {
+    bool found = false;
+    for (const auto& response : responses) {
+        if (response.incidentType == incidentType) { // Match the Incident Type
+            cout << "Response Found:\n";
+            cout << "Response ID: " << response.responseID << "\n";
+            cout << "Incident Type: " << response.incidentType << "\n";
+            cout << "Incident Location: " << response.incidentLocation << "\n";
+            cout << "Reported Time: " << response.reportedTime << "\n";
+            cout << "Resolved Time: " << response.resolvedTime << "\n";
+            cout << "Officer ID: " << response.officerID << "\n";
+            cout << "Station ID: " << response.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Response found for Incident Type: " << incidentType << "\n";
+    }
+}
+
+// Search Response by Location
+void searchResponseByLocation(const vector<Response>& responses, const string& location) {
+    bool found = false;
+    for (const auto& response : responses) {
+        if (response.incidentLocation == location) { // Match the Incident Location
+            cout << "Response Found:\n";
+            cout << "Response ID: " << response.responseID << "\n";
+            cout << "Incident Type: " << response.incidentType << "\n";
+            cout << "Incident Location: " << response.incidentLocation << "\n";
+            cout << "Reported Time: " << response.reportedTime << "\n";
+            cout << "Resolved Time: " << response.resolvedTime << "\n";
+            cout << "Officer ID: " << response.officerID << "\n";
+            cout << "Station ID: " << response.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Response found for Location: " << location << "\n";
+    }
+}
+
+// Search Response by Reported Time
+void searchResponseByReportedTime(const vector<Response>& responses, const string& reportedTime) {
+    bool found = false;
+    for (const auto& response : responses) {
+        if (response.reportedTime == reportedTime) { // Match the Reported Time
+            cout << "Response Found:\n";
+            cout << "Response ID: " << response.responseID << "\n";
+            cout << "Incident Type: " << response.incidentType << "\n";
+            cout << "Incident Location: " << response.incidentLocation << "\n";
+            cout << "Reported Time: " << response.reportedTime << "\n";
+            cout << "Resolved Time: " << response.resolvedTime << "\n";
+            cout << "Officer ID: " << response.officerID << "\n";
+            cout << "Station ID: " << response.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Response found for Reported Time: " << reportedTime << "\n";
+    }
+}
+
+// Search Response by Resolved Time
+void searchResponseByResolvedTime(const vector<Response>& responses, const string& resolvedTime) {
+    bool found = false;
+    for (const auto& response : responses) {
+        if (response.resolvedTime == resolvedTime) { // Match the Resolved Time
+            cout << "Response Found:\n";
+            cout << "Response ID: " << response.responseID << "\n";
+            cout << "Incident Type: " << response.incidentType << "\n";
+            cout << "Incident Location: " << response.incidentLocation << "\n";
+            cout << "Reported Time: " << response.reportedTime << "\n";
+            cout << "Resolved Time: " << response.resolvedTime << "\n";
+            cout << "Officer ID: " << response.officerID << "\n";
+            cout << "Station ID: " << response.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Response found for Resolved Time: " << resolvedTime << "\n";
+    }
+}
+
+// Search Response by Officer ID
+void searchResponseByOfficerID(const vector<Response>& responses, const string& officerID) {
+    bool found = false;
+    for (const auto& response : responses) {
+        if (response.officerID == officerID) { // Match the Officer ID
+            cout << "Response Found:\n";
+            cout << "Response ID: " << response.responseID << "\n";
+            cout << "Incident Type: " << response.incidentType << "\n";
+            cout << "Incident Location: " << response.incidentLocation << "\n";
+            cout << "Reported Time: " << response.reportedTime << "\n";
+            cout << "Resolved Time: " << response.resolvedTime << "\n";
+            cout << "Officer ID: " << response.officerID << "\n";
+            cout << "Station ID: " << response.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Response found for Officer ID: " << officerID << "\n";
+    }
+}
+
+// Search Response by Station ID
+void searchResponseByStationID(const vector<Response>& responses, const string& stationID) {
+    bool found = false;
+    for (const auto& response : responses) {
+        if (response.stationID == stationID) { // Match the Station ID
+            cout << "Response Found:\n";
+            cout << "Response ID: " << response.responseID << "\n";
+            cout << "Incident Type: " << response.incidentType << "\n";
+            cout << "Incident Location: " << response.incidentLocation << "\n";
+            cout << "Reported Time: " << response.reportedTime << "\n";
+            cout << "Resolved Time: " << response.resolvedTime << "\n";
+            cout << "Officer ID: " << response.officerID << "\n";
+            cout << "Station ID: " << response.stationID << "\n\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No Response found for Station ID: " << stationID << "\n";
+    }
+}
+
+// Function to search for a criminal by ID using KMP
+void searchCriminalByID(const vector<Jail> &jailRecords, const string &searchID) {
+    bool found = false;
+    for (const auto &criminal : jailRecords) {
+        if (KMPMatch(criminal.criminalID, searchID)) {
+            cout << "Criminal Found:\n";
+            cout << "ID: " << criminal.criminalID << "\n";
+            cout << "Name: " << criminal.criminalName << "\n";
+            cout << "Arrest Date: " << criminal.arrestDate << "\n";
+            cout << "Release Date: " << criminal.releaseDate << "\n";
+            cout << "Days Remaining: " << criminal.daysRemaining << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "Criminal ID '" << searchID << "' not found in the records.\n";
+    }
+}
+
+// Function to search for a criminal by Name using KMP
+void searchCriminalByName(const vector<Jail> &jailRecords, const string &searchName) {
+    bool found = false;
+    for (const auto &criminal : jailRecords) {
+        if (KMPMatch(criminal.criminalName, searchName)) {
+            cout << "Criminal Found:\n";
+            cout << "ID: " << criminal.criminalID << "\n";
+            cout << "Name: " << criminal.criminalName << "\n";
+            cout << "Arrest Date: " << criminal.arrestDate << "\n";
+            cout << "Release Date: " << criminal.releaseDate << "\n";
+            cout << "Days Remaining: " << criminal.daysRemaining << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "Criminal Name '" << searchName << "' not found in the records.\n";
+    }
+}
+
+// Function to search for a criminal by Arrest Date using KMP
+void searchCriminalByArrestDate(const vector<Jail> &jailRecords, const string &searchDate) {
+    bool found = false;
+    for (const auto &criminal : jailRecords) {
+        if (KMPMatch(criminal.arrestDate, searchDate)) {
+            cout << "Criminal Found:\n";
+            cout << "ID: " << criminal.criminalID << "\n";
+            cout << "Name: " << criminal.criminalName << "\n";
+            cout << "Arrest Date: " << criminal.arrestDate << "\n";
+            cout << "Release Date: " << criminal.releaseDate << "\n";
+            cout << "Days Remaining: " << criminal.daysRemaining << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No criminal found with Arrest Date '" << searchDate << "'.\n";
+    }
+}
+
+// Function to search for a criminal by Release Date using KMP
+void searchCriminalByReleaseDate(const vector<Jail> &jailRecords, const string &searchDate) {
+    bool found = false;
+    for (const auto &criminal : jailRecords) {
+        if (KMPMatch(criminal.releaseDate, searchDate)) {
+            cout << "Criminal Found:\n";
+            cout << "ID: " << criminal.criminalID << "\n";
+            cout << "Name: " << criminal.criminalName << "\n";
+            cout << "Arrest Date: " << criminal.arrestDate << "\n";
+            cout << "Release Date: " << criminal.releaseDate << "\n";
+            cout << "Days Remaining: " << criminal.daysRemaining << "\n";
+            found = true;
+        }
+    }
+    if (!found) {
+        cout << "No criminal found with Release Date '" << searchDate << "'.\n";
+    }
+}
+
+#include <functional>
+#include <iostream>
+#include <fstream>
+#include <vector>
+#include <sstream>
+#include <algorithm>
+#include <functional> // Include this for std::function
+using namespace std;
+
+#include <fstream>
+
+// Function to sort the Jail records by daysRemaining
+void sortJailByDaysRemaining(vector<Jail>& jailRecords) {
+    sort(jailRecords.begin(), jailRecords.end(), [](const Jail& a, const Jail& b) {
+        return a.daysRemaining < b.daysRemaining;
+    });
+}
+
+#include <iostream>
+#include <vector>
+#include <climits>
+#include <string>
+
+using namespace std;
+
+const int INF = INT_MAX;
+const int N = 10;  // Number of stations (10 stations in total)
+
+void initializeStationDistanceMatrix(vector<vector<int>>& dist) {
+    dist = {
+        {0, 5, INF, INF, INF, 12, 7, INF, INF, INF},  // Station 0 to others
+        {5, 0, 8, INF, INF, INF, INF, 10, INF, INF},  // Station 1 to others
+        {INF, 8, 0, 6, INF, INF, INF, INF, 15, INF},  // Station 2 to others
+        {INF, INF, 6, 0, 9, INF, INF, INF, INF, 14},  // Station 3 to others
+        {INF, INF, INF, 9, 0, 11, INF, INF, INF, INF}, // Station 4 to others
+        {12, INF, INF, INF, 11, 0, 13, INF, INF, INF}, // Station 5 to others
+        {7, INF, INF, INF, INF, 13, 0, 9, INF, INF},  // Station 6 to others
+        {INF, 10, INF, INF, INF, INF, 9, 0, 7, INF},  // Station 7 to others
+        {INF, INF, 15, INF, INF, INF, INF, 7, 0, 10}, // Station 8 to others
+        {INF, INF, INF, 14, INF, INF, INF, INF, 10, 0} // Station 9 to others
+    };
+}
+
+#include <iostream>
+#include <vector>
+#include <climits> // For INT_MAX
+#include <algorithm> // For std::fill
+using namespace std;
+
+
+
+#include <iostream>
+#include <vector>
+#include <climits>
+
+using namespace std;
+
+#define INF INT_MAX
+
+// Function to find the minimum key value
+int findMinKey(const vector<int>& key, const vector<bool>& included, int V) {
+    int min = INF, minIndex;
+    for (int v = 0; v < V; v++) {
+        if (!included[v] && key[v] < min) {
+            min = key[v];
+            minIndex = v;
+        }
+    }
+    return minIndex;
+}
+
+// Function to print the MST
+void printMST(const vector<int>& parent, const vector<vector<int>>& graph) {
+    int totalWeight = 0;
+    cout << "Edge \tWeight\n";
+    for (int i = 1; i < parent.size(); i++) {
+        int weight = graph[i][parent[i]];
+        cout << parent[i] << " - " << i << " \t" << weight << "\n";
+        totalWeight += weight;
+    }
+    cout << "\nTotal weight of the MST: " << totalWeight << "\n";
+}
+
+// Function to execute Prim's Algorithm
+void primMST(const vector<vector<int>>& graph, int source) {
+    int V = graph.size();
+    vector<int> key(V, INF);          // Key values for the minimum weight edge
+    vector<bool> included(V, false); // MST set
+    vector<int> parent(V, -1);       // Array to store constructed MST
+
+    key[source] = 0;                 // Start from the selected source
+    parent[source] = -1;             // First node is the root
+
+    for (int count = 0; count < V - 1; count++) {
+        // Find the minimum key vertex not yet included
+        int u = findMinKey(key, included, V);
+        included[u] = true;
+
+        // Update key and parent values for adjacent vertices
+        for (int v = 0; v < V; v++) {
+            if (graph[u][v] != INF && !included[v] && graph[u][v] < key[v]) {
+                parent[v] = u;
+                key[v] = graph[u][v];
+            }
+        }
+    }
+
+    // Print the constructed MST
+    printMST(parent, graph);
+}
+
+// Function to prompt the user for the source station
+int getSourceStation() {
+    int choice;
+    cout << "Choose the source station (0 to 9):\n";
+    cout << "1. Station 0\n";
+    cout << "2. Station 1\n";
+    cout << "3. Station 2\n";
+    cout << "4. Station 3\n";
+    cout << "5. Station 4\n";
+    cout << "6. Station 5\n";
+    cout << "7. Station 6\n";
+    cout << "8. Station 7\n";
+    cout << "9. Station 8\n";
+    cout << "10. Station 9\n";
+    cout << "Enter your choice: ";
+    cin >> choice;
+
+    int source;
+    switch (choice) {
+        case 1: source = 0; break;
+        case 2: source = 1; break;
+        case 3: source = 2; break;
+        case 4: source = 3; break;
+        case 5: source = 4; break;
+        case 6: source = 5; break;
+        case 7: source = 6; break;
+        case 8: source = 7; break;
+        case 9: source = 8; break;
+        case 10: source = 9; break;
+        default:
+            cout << "Invalid choice, please select a valid station number (1-10).\n";
+            source = -1; // Invalid source
+    }
+    return source;
+}
+
+// Function to initialize the traffic light distance matrix
+void initializeTrafficLightMatrix(vector<vector<int>>& trafficLightDist) {
+    trafficLightDist = {
+        {0,   3,   6, INF, INF, INF, INF, INF,   5, INF},  // TL001
+        {3,   0,   2, INF, INF,   7, INF, INF, INF,   4},  // TL002
+        {6,   2,   0,   8, INF, INF, INF, INF,   6, INF},  // TL003
+        {INF, INF,   8,   0,   5, INF, INF, INF, INF,   2}, // TL004
+        {INF, INF, INF,   5,   0,   1, INF,   4, INF, INF}, // TL005
+        {INF,   7, INF, INF,   1,   0,   6, INF, INF, INF}, // TL006
+        {INF, INF, INF, INF, INF,   6,   0,   3, INF,   5}, // TL007
+        {INF, INF, INF, INF,   4, INF,   3,   0,   7, INF}, // TL008
+        {5, INF,   6, INF, INF, INF, INF,   7,   0,   2},  // TL009
+        {INF,   4, INF,   2, INF, INF,   5, INF,   2,   0}   // TL010
+    };
+}
+
+int getSourceTrafficLight() {
+    int choice;
+    cout << "Choose the source traffic light (0 to 9):\n";
+    cout << "1. TL001\n";
+    cout << "2. TL002\n";
+    cout << "3. TL003\n";
+    cout << "4. TL004\n";
+    cout << "5. TL005\n";
+    cout << "6. TL006\n";
+    cout << "7. TL007\n";
+    cout << "8. TL008\n";
+    cout << "9. TL009\n";
+    cout << "10. TL010\n";
+    cout << "Enter your choice: ";
+    cin >> choice;
+
+    // Return the source index
+    return choice - 1;
+}
+
+// Function to initialize the traffic light distance matrix
+void initializeCameraMatrix(vector<vector<int>>& trafficLightDist) {
+    trafficLightDist = {
+        {0,   3,   6, INF, INF, INF, INF, INF,   5, INF},  // TL001
+        {3,   0,   2, INF, INF,   7, INF, INF, INF,   4},  // TL002
+        {6,   2,   0,   8, INF, INF, INF, INF,   6, INF},  // TL003
+        {INF, INF,   8,   0,   5, INF, INF, INF, INF,   2}, // TL004
+        {INF, INF, INF,   5,   0,   1, INF,   4, INF, INF}, // TL005
+        {INF,   7, INF, INF,   1,   0,   6, INF, INF, INF}, // TL006
+        {INF, INF, INF, INF, INF,   6,   0,   3, INF,   5}, // TL007
+        {INF, INF, INF, INF,   4, INF,   3,   0,   7, INF}, // TL008
+        {5, INF,   6, INF, INF, INF, INF,   7,   0,   2},  // TL009
+        {INF,   4, INF,   2, INF, INF,   5, INF,   2,   0}   // TL010
+    };
+}
+
+// Function to initialize the combined distance matrix
+void initializeCombinedMatrix(vector<vector<int>>& combinedMatrix) {
+    combinedMatrix = {
+        // Stations (0-9)
+        {0, 8, INF, INF, INF, INF, 12, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 18}, // Station 0
+        {8, 0, 15, INF, INF, INF, INF, 20, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 22}, // Station 1
+        {INF, 15, 0, 25, INF, INF, INF, INF, 18, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 30}, // Station 2
+        {INF, INF, 25, 0, 12, INF, INF, INF, INF, 16, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 35}, // Station 3
+        {INF, INF, INF, 12, 0, 10, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 20}, // Station 4
+        {INF, INF, INF, INF, 10, 0, 18, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 25}, // Station 5
+        {12, INF, INF, INF, INF, 18, 0, 14, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 15}, // Station 6
+        {INF, 20, INF, INF, INF, INF, 14, 0, 22, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 28}, // Station 7
+        {INF, INF, 18, INF, INF, INF, INF, 22, 0, 10, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 32}, // Station 8
+        {INF, INF, INF, 16, INF, INF, INF, INF, 10, 0, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 40}, // Station 9
+
+        // Traffic Lights (10-19)
+        {INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 0, 2, 5, INF, INF, INF, INF, INF, 4, INF, 8}, // TL001
+        {INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 2, 0, 3, INF, INF, 7, INF, INF, INF, 6, 10}, // TL002
+        {INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 5, 3, 0, 6, INF, INF, INF, INF, 5, INF, 12}, // TL003
+        {INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 6, 0, 4, INF, INF, INF, INF, 3, 15}, // TL004
+        {INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 4, 0, 2, INF, 5, INF, INF, 20}, // TL005
+        {INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 7, INF, INF, 2, 0, 4, INF, INF, INF, 18}, // TL006
+        {INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 4, 0, 3, INF, 7, 22}, // TL007
+        {INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 5, INF, 3, 0, 6, INF, 25}, // TL008
+        {INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 4, INF, 5, INF, INF, INF, INF, 6, 0, 2, 28}, // TL009
+        {INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, INF, 6, INF, 3, INF, INF, 7, INF, 2, 0, 30}, // TL010
+
+        // Jail (Node 20)
+        {18, 22, 30, 35, 20, 25, 15, 28, 32, 40, 8, 10, 12, 15, 20, 18, 22, 25, 28, 30, 0} // Jail
+    };
+}
+
+// Function to choose the source node
+int getSourceNode() {
+    int choice;
+    cout << "Choose the source node (0 to 20):\n";
+    cout << "0 to 9: Stations (TL001 to TL010)\n";
+    cout << "10 to 19: Traffic Lights (TL001 to TL010)\n";
+    cout << "20: Jail\n";
+    cout << "Enter your choice: ";
+    cin >> choice;
+
+    // Return the source index
+    return choice;
+}
+
+
+// Function to initialize the next matrix
+void initializeNextMatrix(const vector<vector<int>>& dist, vector<vector<int>>& next) {
+    for (int i = 0; i < N; ++i) {
+        for (int j = 0; j < N; ++j) {
+            if (dist[i][j] != INF) {
+                next[i][j] = j;
+            } else {
+                next[i][j] = -1;
+            }
+        }
+    }
+}
+
+// Function to print the shortest path matrix and the path using intermediate stations
+void printSolution(const vector<vector<int>>& dist, const vector<vector<int>>& next, int source, int destination) {
+    if (dist[source][destination] == INF) {
+        cout << "No path exists between " << source + 1 << " and " << destination + 1 << endl;
+        return;
+    }
+
+    cout << "Shortest distance from station " << source + 1 << " to station " << destination + 1 << ": "
+         << dist[source][destination] << " km" << endl;
+
+    cout << "Path: " << source + 1 << " -> ";
+    int k = source;
+    while (k != destination) {
+        k = next[k][destination];
+        cout << k + 1 << " -> ";
+    }
+    cout << destination + 1 << endl;
+}
+
+// Floyd-Warshall algorithm to find the shortest paths
+void floydWarshall(vector<vector<int>>& dist, vector<vector<int>>& next) {
+    for (int k = 0; k < N; ++k) {
+        for (int i = 0; i < N; ++i) {
+            for (int j = 0; j < N; ++j) {
+                if (dist[i][k] != INF && dist[k][j] != INF && dist[i][j] > dist[i][k] + dist[k][j]) {
+                    dist[i][j] = dist[i][k] + dist[k][j];
+                    next[i][j] = next[i][k];
+                }
+            }
+        }
+    }
+}
+
+#include <algorithm> // For std::sort
+
+// Function to sort stations by the highest number of officers
+void sortStationsByNumOfficers(vector<Station>& stations) {
+    // Custom comparator for sorting in descending order
+    std::sort(stations.begin(), stations.end(), [](const Station& a, const Station& b) {
+        return a.numOfficers > b.numOfficers; // Sort by numOfficers in descending order
+    });
+
+    cout << "Stations sorted by the highest number of officers:\n";
+    for (const auto& station : stations) {
+        cout << "Station ID: " << station.stationID << "\n";
+        cout << "  Name: " << station.stationName << "\n";
+        cout << "  Address: " << station.address << "\n";
+        cout << "  Contact Number: " << station.contactNumber << "\n";
+        cout << "  Number of Officers: " << station.numOfficers << "\n";
+        cout << "  Cases Handled: " << station.casesHandled << "\n";
+        cout << "  Traffic Lights Managed: " << station.trafficLightsManaged << "\n";
+        cout << "  Cameras Managed: " << station.camerasManaged << "\n\n";
+    }
+}
+
+#include <algorithm> // For std::sort
+
+// Function to sort stations by the highest number of cases handled
+void sortStationsByCasesHandled(vector<Station>& stations) {
+    // Custom comparator for sorting in descending order
+    std::sort(stations.begin(), stations.end(), [](const Station& a, const Station& b) {
+        return a.casesHandled > b.casesHandled; // Sort by casesHandled in descending order
+    });
+
+    cout << "Stations sorted by the highest number of cases handled:\n";
+    for (const auto& station : stations) {
+        cout << "Station ID: " << station.stationID << "\n";
+        cout << "  Name: " << station.stationName << "\n";
+        cout << "  Address: " << station.address << "\n";
+        cout << "  Contact Number: " << station.contactNumber << "\n";
+        cout << "  Number of Officers: " << station.numOfficers << "\n";
+        cout << "  Cases Handled: " << station.casesHandled << "\n";
+        cout << "  Traffic Lights Managed: " << station.trafficLightsManaged << "\n";
+        cout << "  Cameras Managed: " << station.camerasManaged << "\n\n";
+    }
+}
+
+#include <algorithm> // For std::sort
+
+// Function to sort stations by the highest number of traffic lights managed
+void sortStationsByTrafficLightsManaged(vector<Station>& stations) {
+    // Custom comparator for sorting in descending order
+    std::sort(stations.begin(), stations.end(), [](const Station& a, const Station& b) {
+        return a.trafficLightsManaged > b.trafficLightsManaged; // Sort by trafficLightsManaged in descending order
+    });
+
+    cout << "Stations sorted by the highest number of traffic lights managed:\n";
+    for (const auto& station : stations) {
+        cout << "Station ID: " << station.stationID << "\n";
+        cout << "  Name: " << station.stationName << "\n";
+        cout << "  Address: " << station.address << "\n";
+        cout << "  Contact Number: " << station.contactNumber << "\n";
+        cout << "  Number of Officers: " << station.numOfficers << "\n";
+        cout << "  Cases Handled: " << station.casesHandled << "\n";
+        cout << "  Traffic Lights Managed: " << station.trafficLightsManaged << "\n";
+        cout << "  Cameras Managed: " << station.camerasManaged << "\n\n";
+    }
+}
+
+#include <algorithm> // For std::sort
+
+// Function to sort stations by the highest number of cameras managed
+void sortStationsByCamerasManaged(vector<Station>& stations) {
+    // Custom comparator for sorting in descending order
+    std::sort(stations.begin(), stations.end(), [](const Station& a, const Station& b) {
+        return a.camerasManaged > b.camerasManaged; // Sort by camerasManaged in descending order
+    });
+
+    cout << "Stations sorted by the highest number of cameras managed:\n";
+    for (const auto& station : stations) {
+        cout << "Station ID: " << station.stationID << "\n";
+        cout << "  Name: " << station.stationName << "\n";
+        cout << "  Address: " << station.address << "\n";
+        cout << "  Contact Number: " << station.contactNumber << "\n";
+        cout << "  Number of Officers: " << station.numOfficers << "\n";
+        cout << "  Cases Handled: " << station.casesHandled << "\n";
+        cout << "  Traffic Lights Managed: " << station.trafficLightsManaged << "\n";
+        cout << "  Cameras Managed: " << station.camerasManaged << "\n\n";
+    }
+}
+
+#include <algorithm> // For std::sort
+
+// Function to sort officers by the number of cases handled
+void sortOfficersByCasesHandled(vector<Officer>& officers) {
+    // Custom comparator for sorting in descending order
+    std::sort(officers.begin(), officers.end(), [](const Officer& a, const Officer& b) {
+        return a.numCasesHandled > b.numCasesHandled; // Sort by numCasesHandled in descending order
+    });
+
+    cout << "Officers sorted by the highest number of cases handled:\n";
+    for (const auto& officer : officers) {
+        cout << "Officer ID: " << officer.officerID << "\n";
+        cout << "  Name: " << officer.name << "\n";
+        cout << "  Rank: " << officer.rank << "\n";
+        cout << "  Station ID: " << officer.stationID << "\n";
+        cout << "  Contact Number: " << officer.contactNumber << "\n";
+        cout << "  Cases Handled: " << officer.numCasesHandled << "\n";
+        cout << "  Traffic Violations: " << officer.trafficViolations << "\n";
+        cout << "  Hours Worked: " << officer.hoursWorked << "\n";
+        cout << "  Shift: " << officer.shift << "\n\n";
+    }
+}
+
+#include <algorithm> // For std::sort
+
+// Function to sort officers by the number of traffic violations
+void sortOfficersByTrafficViolations(vector<Officer>& officers) {
+    // Custom comparator for sorting in descending order
+    std::sort(officers.begin(), officers.end(), [](const Officer& a, const Officer& b) {
+        return a.trafficViolations > b.trafficViolations; // Sort by trafficViolations in descending order
+    });
+
+    cout << "Officers sorted by the highest number of traffic violations handled:\n";
+    for (const auto& officer : officers) {
+        cout << "Officer ID: " << officer.officerID << "\n";
+        cout << "  Name: " << officer.name << "\n";
+        cout << "  Rank: " << officer.rank << "\n";
+        cout << "  Station ID: " << officer.stationID << "\n";
+        cout << "  Contact Number: " << officer.contactNumber << "\n";
+        cout << "  Cases Handled: " << officer.numCasesHandled << "\n";
+        cout << "  Traffic Violations: " << officer.trafficViolations << "\n";
+        cout << "  Hours Worked: " << officer.hoursWorked << "\n";
+        cout << "  Shift: " << officer.shift << "\n\n";
+    }
+}
+
+#include <algorithm> // For std::sort
+
+// Function to sort officers by the number of hours worked
+void sortOfficersByHoursWorked(vector<Officer>& officers) {
+    // Custom comparator for sorting in descending order
+    std::sort(officers.begin(), officers.end(), [](const Officer& a, const Officer& b) {
+        return a.hoursWorked > b.hoursWorked; // Sort by hoursWorked in descending order
+    });
+
+    cout << "Officers sorted by the highest number of hours worked:\n";
+    for (const auto& officer : officers) {
+        cout << "Officer ID: " << officer.officerID << "\n";
+        cout << "  Name: " << officer.name << "\n";
+        cout << "  Rank: " << officer.rank << "\n";
+        cout << "  Station ID: " << officer.stationID << "\n";
+        cout << "  Contact Number: " << officer.contactNumber << "\n";
+        cout << "  Cases Handled: " << officer.numCasesHandled << "\n";
+        cout << "  Traffic Violations: " << officer.trafficViolations << "\n";
+        cout << "  Hours Worked: " << officer.hoursWorked << "\n";
+        cout << "  Shift: " << officer.shift << "\n\n";
+    }
+}
+
+
+
+
+
+
+
+
+
+// Menu function to choose an operation
+void showMenu() {
+    cout << "Menu:\n";
+    cout << "1. Display Stations\n";
+    cout << "2. Display Officers\n";
+    cout << "3. Display Arrests\n";
+    cout << "4. Display Cases\n";
+    cout << "5. Display Shifts\n";
+    cout << "6. Display Traffic Lights\n";
+    cout << "7. Display Cameras\n";
+    cout << "8. Display Responses\n";
+    cout << "9. Display Jail Records\n";
+
+    // Station Search Options
+    cout << "10. Search Station by ID\n";
+    cout << "11. Search Station by Name\n";
+    cout << "12. Search Station by Address\n";
+    cout << "13. Search Station by Contact Number\n";
+
+    // Officer Search Options
+    cout << "14. Search Officer by ID\n";
+    cout << "15. Search Officer by Name\n";
+    cout << "16. Search Officer by Rank\n";
+    cout << "17. Search Officer by Station ID\n";
+    cout << "18. Search Officer by Contact Number\n";
+
+    // Criminal/Arrest Search Options
+    cout << "19. Search Criminal by Arrest ID\n";
+    cout << "20. Search Criminal by Arrest Date\n";
+    cout << "21. Search Criminal by Name\n";
+    cout << "22. Search Criminal by Case ID\n";
+    cout << "23. Search Criminal by Officer ID\n";
+
+    // Case Search Options
+    cout << "24. Search Case by Case ID\n";
+    cout << "25. Search Case by Title\n";
+    cout << "26. Search Case by Description\n";
+    cout << "27. Search Case by Reported Date\n";
+    cout << "28. Search Case by Status\n";
+    cout << "29. Search Case by Officer ID\n";
+    cout << "30. Search Case by Station ID\n";
+
+    // Shift Search Options
+    cout << "31. Search Shift by Shift ID\n";
+    cout << "32. Search Shift by Officer ID\n";
+    cout << "33. Search Shift by Station ID\n";
+    cout << "34. Search Shift by Start Time\n";
+    cout << "35. Search Shift by End Time\n";
+
+    // Traffic Light Search Options
+    cout << "36. Search Traffic Light by Light ID\n";
+    cout << "37. Search Traffic Light by Location\n";
+    cout << "38. Search Traffic Light by Status\n";
+    cout << "39. Search Traffic Light by Last Maintenance Date\n";
+    cout << "40. Search Traffic Light by Station ID\n";
+
+    // Camera Search Options
+    cout << "41. Search Camera by Camera ID\n";
+    cout << "42. Search Camera by Location\n";
+    cout << "43. Search Camera by Status\n";
+    cout << "44. Search Camera by Connected to Traffic Light\n";
+    cout << "45. Search Camera by Station ID\n";
+
+    // Response Search Options
+    cout << "46. Search Response by Response ID\n";
+    cout << "47. Search Response by Incident Type\n";
+    cout << "48. Search Response by Location\n";
+    cout << "49. Search Response by Reported Time\n";
+    cout << "50. Search Response by Resolved Time\n";
+    cout << "51. Search Response by Officer ID\n";
+    cout << "52. Search Response by Station ID\n";
+
+    //Sorting
+
+    cout << "53. Sort Station by Number of Officers\n";
+    cout << "54. Sort Station by Number of Cases Handled\n";
+    cout << "55. Sort Station by Number of Traffic Lights Managed\n";
+    cout << "56. Sort Station by Number of Cameras Managed\n";
+    cout << "57. Sort Officers by Number of Cases Handled\n";
+    cout << "58. Sort Officers by Number of Traffic Violations\n";
+    cout << "59. Sort Officers by Number of Hours Worked\n";
+    cout << "100. Sort Jail by Days Remaining of Criminals\n";
+
+    //Shortest Path
+    cout << "60. Shortest Path Between Stations\n";
+    cout << "61. Shortest Path Between Traffic Lights\n";
+    cout << "62. Shortest Path Between Camera\n";
+    cout << "63. Shortest Path Between Different Landmarks\n";
+    cout << "64. Shortest Path to Visit all Stations\n";
+    cout << "65. Shortest Path to Visit all Traffic Lights\n";
+    cout << "66. Shortest Path to Visit all Landmarks\n";
+    // Exit Option
+    cout << "0. Exit\n";
+}
+
+
+
+
+#include <iostream>
+#include <vector>
+#include <string>
+#include <fstream>
+#include <sstream>
+
+using namespace std;
+
+// Include the rest of the code here (structs and functions for reading and displaying data)
+
+int main() {
+    // Initialize data vectors
+    vector<Station> stations;
+    vector<Officer> officers;
+    vector<Arrest> arrests;
+    vector<Case> cases;
+    vector<Shift> shifts;
+    vector<TrafficLight> trafficLights;
+    vector<Camera> cameras;
+    vector<Response> responses;
+    vector<Jail> jailRecords; // Add jail records vector
+
+    // Read data from text files (ensure these files exist in your directory)
+    readStations(stations);
+    readOfficers(officers);
+    readArrests(arrests);
+    readCases(cases);
+    readShifts(shifts);
+    readTrafficLights(trafficLights);
+    readCameras(cameras);
+    readResponses(responses);
+    readJailRecords(jailRecords); // Add reading jail records
+
+    int choice;
+    string searchID, searchName, searchAddress, searchContactNumber;  // Declare search inputs
+    int outerChoice, innerChoice1, innerChoice2;
+    do {
+        // Outer menu
+        cout << "\nMain Menu:\n";
+        cout << "1. Stations\n";
+        cout << "2. Officers\n";
+        cout << "3. Arrests\n";
+        cout << "4. Cases\n";
+        cout << "5. Shifts\n";
+        cout << "6. Traffic Lights\n";
+        cout << "7. Cameras\n";
+        cout << "8. Responses\n";
+        cout << "9. Jail Records\n";
+        cout << "0. Exit\n";
+        cout << "Enter your choice: ";
+        cin >> outerChoice;
+        cin.ignore(); // To prevent input issues with getline
+
+        switch (outerChoice) {
+            case 1: { // Stations
+                cout << "Welcome to Stations\n";
+
+                do {
+                    // Inner menu for stations
+                    cout << "\nStation Menu:\n";
+                    cout << "1. Display Stations\n";
+                    cout << "2. Search in Stations\n";
+                    cout << "3. Sort Stations\n";
+                    cout << "99. Go back to Main Menu\n";
+                    cout << "Enter your choice: ";
+                    cin >> innerChoice1;
+                    cin.ignore(); // To prevent input issues with getline
+
+                    switch (innerChoice1) {
+                        case 1: { // Display stations
+                            displayStations(stations);
+                            break;
+                        }
+                        case 2: { // Search in stations
+                            do{
+                                cout << "Select Search Option:\n";
+                                cout << "1. Search by Station ID\n";
+                                cout << "2. Search by Station Name\n";
+                                cout << "3. Search by Station Address\n";
+                                cout << "4. Search by Station Contact Number\n";
+                                cout << "99. Go back to Station Menu\n";
+                                cout << "Enter your choice: ";
+                                cin >> innerChoice2;
+                                cin.ignore(); // To prevent input issues with getline
+
+                                switch (innerChoice2) {
+                                    case 1: {
+                                        cout << "Enter Station ID to search: ";
+                                        getline(cin, searchID);
+                                        searchStationByID(stations, searchID);
+                                        break;
+                                    }
+                                    case 2: {
+                                        cout << "Enter Station Name to search: ";
+                                        getline(cin, searchName);
+                                        searchStationByName(stations, searchName);
+                                        break;
+                                    }
+                                    case 3: {
+                                        cout << "Enter Station Address to search: ";
+                                        getline(cin, searchAddress);
+                                        searchStationByAddress(stations, searchAddress);
+                                        break;
+                                    }
+                                    case 4: {
+                                        cout << "Enter Station Contact Number to search: ";
+                                        getline(cin, searchContactNumber);
+                                        searchStationByContactNumber(stations, searchContactNumber);
+                                        break;
+                                    }
+                                    case 99:
+                                        cout << "Returning to Station Menu...\n";
+                                        break;
+
+                                    default:
+                                        cout << "Invalid search option. Try again.\n";
+                                        break;
+                                }
+                            }while(innerChoice2 !=99);
+                            break;
+                        }
+                        case 3: {
+                            //Station Sorting Menu
+                            cout << "Enter Station Sorting Parameter: \n";
+                            cout << "1. Sort by Number of Officers\n";
+                            cout << "2. Sort by Number of Cases Handled\n";
+                            cout << "3. Sort by Number of Traffic Lights Managed\n";
+                            cout << "4. Sort by Number of Cameras Managed\n";
+                            cout << "99. Go back to Station Menu\n";
+                            cout << "Enter your choice: ";
+                            cin >> innerChoice2;
+                            cin.ignore(); // To prevent input issues with getline
+                            switch (innerChoice2) {
+                                case 1:{
+                                    sortStationsByNumOfficers(stations);
+                                    displayStations(stations);
+                                    break;
+                                }
+                                case 2:{
+                                    sortStationsByCasesHandled(stations);
+                                    displayStations(stations);
+                                    break;
+                                }
+                                case 3:{
+                                    sortStationsByTrafficLightsManaged(stations);
+                                    displayStations(stations);
+                                    break;
+                                }
+                                case 4:{
+                                    sortStationsByCamerasManaged(stations);
+                                    displayStations(stations);
+                                    break;
+                                }
+                                case 99:{
+                                     cout << "Returning to Station Menu...\n";
+                                     break;
+                                }
+                                default:{
+                                     cout << "Invalid choice in Station Menu. Try again.\n";
+                                     break;
+                                }
+                            }
+                            break;
+                        }
+                        case 99:
+                            cout << "Returning to Main Menu...\n";
+                            break;
+
+                        default:
+                            cout << "Invalid choice in Station Menu. Try again.\n";
+                            break;
+                    }
+                } while (innerChoice1 != 99);
+                break;
+            }
+            case 2: { // Officers
+                cout << "Officers Menu\n";
+                do{
+                    // Inner menu for officers
+                    cout << "\nOfficer Menu:\n";
+                    cout << "1. Display Officers\n";
+                    cout << "2. Search in Officers\n";
+                    cout << "3. Sort Officers\n";
+                    cout << "99. Go back to Main Menu\n";
+                    cout << "Enter your choice: ";
+                    cin >> innerChoice1;
+                    cin.ignore(); // To prevent input issues with getline
+                    switch (innerChoice1) {
+                        case 1: { // Display officers
+                            displayOfficers(officers);
+                            break;
+                        }
+                        case 2: { // Search in officers
+                            cout << "Select Search Option:\n";
+                            cout << "1. Search by Officer ID\n";
+                            cout << "2. Search by Officer Name\n";
+                            cout << "3. Search by Officer Rank\n";
+                            cout << "4. Search by Officer Station ID\n";
+                            cout << "5. Search by Officer Contact Number\n";
+                            cout << "99. Go back to Officer Menu\n";
+                            cout << "Enter your choice: ";
+                            cin >> innerChoice2;
+                            cin.ignore(); // To prevent input issues with getline
+                            switch (innerChoice2) {
+                                case 1: {
+                                    cout << "Enter Officer ID to search: ";
+                                    getline(cin, searchID);
+                                    searchOfficerByID(officers, searchID);
+                                    break;
+                                }
+                                case 2: {
+                                    cout << "Enter Officer Name to search: ";
+                                    getline(cin, searchName);
+                                    searchOfficerByName(officers, searchName);
+                                    break;
+                                }
+                                case 3: {
+                                    cout << "Enter Officer Rank to search: ";
+                                    getline(cin, searchName);
+                                    searchOfficerByRank(officers, searchName);
+                                    break;
+                                }
+                                case 4: {
+                                    cout << "Enter Officer Station ID to search: ";
+                                    getline(cin, searchID);
+                                    searchOfficerByStationID(officers, searchID);
+                                    break;
+                                }
+                                case 5: {
+                                     cout << "Enter Officer Contact Number to search: ";
+                                    getline(cin, searchContactNumber);
+                                    searchOfficerByContact(officers, searchContactNumber);
+                                    break;
+                                }
+                                case 99:
+                                    cout << "Returning to Officer Menu...\n";
+                                    break;
+                                default:
+                                    cout << "Invalid search option. Try again.\n";
+                                    break;
+                            }
+                        break;
+                        }
+                    }
+
+                }while(innerChoice1!=99);
+                break;
+
+            }
+            case 3: { // Arrests
+                cout << "Arrests Menu\n";
+                do{
+                    // Inner menu for arrests
+                    cout << "\nArrest Menu:\n";
+                    cout << "1. Display Arrests\n";
+                    cout << "2. Search in Arrests\n";
+                    cout << "99. Go back to Main Menu\n";
+                    cout << "Enter your choice: ";
+                    cin >> innerChoice1;
+                    cin.ignore(); // To prevent input issues with getline
+                    switch (innerChoice1) {
+                        case 1: { // Display arrests
+                            displayArrests(arrests);
+                            break;
+                        }
+                        case 2: { // Search in arrests
+                            cout << "Select Search Option:\n";
+                            cout << "1. Search by Arrest ID\n";
+                            cout << "2. Search by Arrest Date\n";
+                            cout << "3. Search by Criminal Name\n";
+                            cout << "4. Search by Case ID\n";
+                            cout << "5. Search by Officer ID\n";
+                            cout << "99. Go back to Arrest Menu\n";
+                            cout << "Enter your choice: ";
+                            cin >> innerChoice2;
+                            cin.ignore(); // To prevent input issues with getline
+                            switch (innerChoice2) {
+                                case 1: {
+                                    cout << "Enter Arrest ID to Search:\n";
+                                    getline(cin,searchID);
+                                    searchCriminalByArrestID(arrests,searchID);
+                                    break;
+                                }
+                                case 2: {
+                                     cout << "Enter Arrest Date to Search:\n";
+                                    getline(cin, searchName);
+                                    searchCriminalByArrestDate(arrests, searchName);
+                                    break;
+                                }
+                                case 3: {
+                                     cout << "Enter Criminal Name to Search:\n";
+                                    getline(cin, searchName);
+                                    searchCriminalByName(arrests, searchName);
+                                    break;
+                                }
+                                case 4: {
+                                     cout << "Enter Case ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchCriminalByCaseID(arrests, searchID);
+                                    break;
+                                }
+                                case 5: {
+                                     cout << "Enter Officer ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchCriminalByOfficerID(arrests, searchID);
+                                    break;
+                                }
+                                case 99:
+                                    cout << "Returning to Arrest Menu...\n";
+                                    break;
+                                default:
+                                    cout << "Invalid Search Option. Try Again.\n";
+                                    break;
+                            break;
+                            }
+                        }
+
+
+                    }
+                }while(innerChoice1!=99);
+                break;
+            }
+            case 4: { // Cases
+            cout << "Cases Menu\n";
+                do{
+                    // Inner menu for cases
+                    cout << "\nCase Menu:\n";
+                    cout << "1. Display Cases\n";
+                    cout << "2. Search in Cases\n";
+                    cout << "99. Go back to Main Menu\n";
+                    cout << "Enter your choice: ";
+                    cin >> innerChoice1;
+                    cin.ignore(); // To prevent input issues with getline
+                    switch (innerChoice1) {
+                        case 1: { // Display cases
+                            displayCases(cases);
+                            break;
+                        }
+                        case 2: {
+                            cout << "Select Search Option:\n";
+                            cout << "1. Search by Case ID\n";
+                            cout << "2. Search by Case Title\n";
+                            cout << "3. Search by Case Description\n";
+                            cout << "4. Search by Case Reported Date\n";
+                            cout << "5. Search by Case Status\n";
+                            cout << "6. Search by Case Officer ID\n";
+                            cout << "7. Search by Case Station ID\n";
+                            cout << "99. Go back to Case Menu\n";
+                            cout << "Enter your choice: ";
+                            cin >> innerChoice2;
+                            cin.ignore(); // To prevent input issues with getline
+                            switch (innerChoice2) {
+                                case 1: {
+                                     cout << "Enter Case ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchCaseByCaseID(cases, searchID);
+                                    break;
+                                }
+                                case 2: {
+                                     cout << "Enter Case Title to Search:\n";
+                                    getline(cin, searchName);
+                                    searchCasesByTitle(cases, searchName);
+                                    break;
+                                }
+                                case 3: {
+                                     cout << "Enter Case Description to Search:\n";
+                                    getline(cin, searchName);
+                                    searchCaseByDescription(cases, searchName);
+                                    break;
+                                }
+                                case 4: {
+                                     cout << "Enter Case Reported Date to Search:\n";
+                                    getline(cin, searchName);
+                                    searchCaseByReportedDate(cases, searchName);
+                                    break;
+                                }
+                                case 5: {
+                                     cout << "Enter Case Status to Search:\n";
+                                    getline(cin, searchName);
+                                    searchCaseByStatus(cases, searchName);
+                                    break;
+                                }
+                                case 6: {
+                                     cout << "Enter Officer ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchCaseByOfficerID(cases, searchID);
+                                    break;
+                                }
+                                case 7: {
+                                     cout << "Enter Station ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchCaseByStationID(cases, searchID);
+                                    break;
+                                }
+                                case 99:
+                                    cout << "Returning to Case Menu:\n";
+                                    break;
+                                default:
+                                    cout << "Invalid Search Option. Try Again. \n";
+                                    break;
+                            }
+                        } // Search in cases
+                    }
+
+                }while(innerChoice1 != 99);
+                break;
+            }
+            case 5: { // Shifts
+                cout << "Shifts Menu\n";
+                do{
+                    //inner menu for Shifts
+                    cout << "\nShift Menu:\n";
+                    cout << "1. Display Shifts\n";
+                    cout << "2. Search in Shifts\n";
+                    cout << "99. Go back to Main Menu\n";
+                    cout << "Enter your choice: ";
+                    cin >> innerChoice1;
+                    cin.ignore(); // To prevent input issues with getline
+                    switch (innerChoice1) {
+                        case 1: { // Display Shifts
+                            displayShifts(shifts);
+                            break;
+                        }
+                        case 2: {
+                            cout << "Select Search Option:\n";
+                            cout << "1. Search by Shift ID\n";
+                            cout << "2. Search by Officer ID\n";
+                            cout << "3. Search by Station ID\n";
+                            cout << "4. Search by Shift Start Time\n";
+                            cout << "5. Search by Shift End Time\n";
+                            cout << "99. Go back to Shift Menu\n";
+                            cout << "Enter your choice: ";
+                            cin >> innerChoice2;
+                            cin.ignore(); // To prevent input issues with getline
+                            switch (innerChoice2) {
+                                case 1: {
+                                     cout << "Enter Shift ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchShiftByShiftID(shifts, searchID);
+                                    break;
+                                }
+                                case 2: {
+                                     cout << "Enter Officer ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchShiftByOfficerID(shifts, searchID);
+                                    break;
+                                }
+                                case 3: {
+                                     cout << "Enter Station ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchShiftByStationID(shifts, searchID);
+                                    break;
+                                }
+                                case 4: {
+                                     cout << "Enter Shift Start Time to Search:\n";
+                                    getline(cin, searchName);
+                                    searchShiftByStartTime(shifts, searchName);
+                                    break;
+                                }
+                                case 5: {
+                                     cout << "Enter Shift End Time to Search:\n";
+                                    getline(cin, searchName);
+                                    searchShiftByEndTime(shifts, searchName);
+                                    break;
+                                }
+                                case 99:
+                                    cout << "Returning to Shifts Menu:\n";
+                                    break;
+                                default:
+                                    cout << "Invalid Search Option. Try again.\n";
+                                    break;
+                            }
+                        }
+                    }
+                }while(innerChoice1!=99);
+                break;
+            }
+            case 6: { // Traffic Lights
+                cout << "Traffic Lights Menu\n";
+                do{
+                    //inner menu for Traffic Lights
+                    cout << "\nTraffic Lights Menu:\n";
+                    cout << "1. Display Traffic Lights\n";
+                    cout << "2. Search in Traffic Lights\n";
+                    cout << "99. Go back to Main Menu\n";
+                    cout << "Enter your choice: ";
+                    cin >> innerChoice1;
+                    cin.ignore(); // To prevent input issues with getline
+                    switch (innerChoice1) {
+                        case 1: { // Display Traffic Lights
+                            displayTrafficLights(trafficLights);
+                            break;
+                        }
+                        case 2: {
+                            cout << "Select Search Option:\n";
+                            cout << "1. Search by Light ID\n";
+                            cout << "2. Search by Light Location\n";
+                            cout << "3. Search by Light Status\n";
+                            cout << "4. Search By Last Maintenance Date\n";
+                            cout << "5. Search by Station ID\n";
+                            cout << "99. Go back to Traffic Lights Menu\n";
+                            cout << "Enter your choice: ";
+                            cin >> innerChoice2;
+                            cin.ignore(); // To prevent input issues with getline
+                            switch (innerChoice2) {
+                                case 1: {
+                                     cout << "Enter Light ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchTrafficLightByLightID(trafficLights, searchID);
+                                    break;
+                                }
+                                case 2: {
+                                     cout << "Enter Light Location to Search:\n";
+                                    getline(cin, searchName);
+                                    searchTrafficLightByLocation(trafficLights, searchName);
+                                    break;
+                                }
+                                case 3: {
+                                     cout << "Enter Light Status to Search:\n";
+                                    getline(cin, searchName);
+                                    searchTrafficLightByStatus(trafficLights, searchName);
+                                    break;
+                                }
+                                case 4: {
+                                     cout << "Enter Last Maintenance Date to Search:\n";
+                                    getline(cin, searchName);
+                                    searchTrafficLightByLastMaintenanceDate(trafficLights, searchName);
+                                    break;
+                                }
+                                case 5: {
+                                     cout << "Enter Station ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchTrafficLightByStationID(trafficLights, searchID);
+                                    break;
+                                }
+                                case 99:{
+                                     cout << "Returning to Traffic Lights Menu:\n";
+                                    break;
+                                }
+                                default:{
+                                    cout << "Invalid Search Option. Try again.\n";
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }while(innerChoice1!=99);
+                break;
+            }
+            case 7: { // Cameras
+                cout << "Cameras Menu\n";
+                do{
+                    //inner menu for Cameras
+                    cout << "\nCameras Menu:\n";
+                    cout << "1. Display Cameras\n";
+                    cout << "2. Search in Cameras\n";
+                    cout << "99. Go back to Main Menu\n";
+                    cout << "Enter your choice: ";
+                    cin >> innerChoice1;
+                    cin.ignore(); // To prevent input issues with getline
+                    switch (innerChoice1) {
+                        case 1: { // Display Cameras
+                            displayCameras(cameras);
+                            break;
+                        }
+                        case 2: {
+                            cout << "Select Search Option:\n";
+                            cout << "1. Search by Camera ID\n";
+                            cout << "2. Search by Camera Location\n";
+                            cout << "3. Search by Camera Status\n";
+                            cout << "4. Search by Traffic Light Connection\n";
+                            cout << "5. Search by Station ID\n";
+                            cout << "99. Go back to Cameras Menu\n";
+                            cout << "Enter your choice: ";
+                            cin >> innerChoice2;
+                            cin.ignore(); // To prevent input issues with getline
+                            switch (innerChoice2) {
+                                case 1: {
+                                     cout << "Enter Camera ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchCameraByCameraID(cameras, searchID);
+                                    break;
+                                }
+                                case 2: {
+                                     cout << "Enter Camera Location to Search:\n";
+                                    getline(cin, searchName);
+                                    searchCameraByLocation(cameras, searchName);
+                                    break;
+                                }
+                                case 3: {
+                                     cout << "Enter Camera Status to Search:\n";
+                                    getline(cin, searchName);
+                                    searchCameraByStatus(cameras, searchName);
+                                    break;
+                                }
+                                case 4: {
+                                     cout << "Enter Traffic Light Connection to Search:\n";
+                                    getline(cin, searchName);
+                                    searchCameraByConnectedToTrafficLight(cameras, searchName);
+                                    break;
+                                }
+                                case 5: {
+                                     cout << "Enter Station ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchCameraByStationID(cameras, searchID);
+                                    break;
+                                }
+                                case 99:{
+                                     cout << "Returning to Cameras Menu:\n";
+                                    break;
+                                }
+                                default:{
+                                    cout << "Invalid Search Option. Try again.\n";
+                                    break;
+                                }
+
+                            }
+                            break;
+                        }
+                    }
+                }while(innerChoice1!=99);
+                break;
+            }
+            case 8: { // Responses
+            cout << "Response Menu\n";
+                do{
+                    //inner menu for response
+                    cout << "\nResponse Menu:\n";
+                    cout << "1. Display Responses\n";
+                    cout << "2. Search in Responses\n";
+                    cout << "99. Go back to Main Menu\n";
+                    cout << "Enter your choice: ";
+                    cin >> innerChoice1;
+                    cin.ignore(); // To prevent input issues with getline
+                    switch (innerChoice1) {
+                        case 1: { // Display Responses
+                            displayResponses(responses);
+                            break;
+                        }
+                        case 2: {
+                            cout << "Select Search Option:\n";
+                            cout << "1. Search by Response ID\n";
+                            cout << "2. Search by Incident Type\n";
+                            cout << "3. Search by Incident Location\n";
+                            cout << "4. Search by Reported Time\n";
+                            cout << "5. Search by Resolved Time\n";
+                            cout << "6. Search by Officer ID\n";
+                            cout << "7. Search By Station ID\n";
+                            cout << "99. Go back to Responses Menu\n";
+                            cout << "Enter your choice: ";
+                            cin >> innerChoice2;
+                            cin.ignore(); // To prevent input issues with getline
+                            switch (innerChoice2) {
+                                case 1: {
+                                     cout << "Enter Response ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchResponseByResponseID(responses, searchID);
+                                    break;
+                                }
+                                case 2: {
+                                     cout << "Enter Incident Type to Search:\n";
+                                    getline(cin, searchName);
+                                    searchResponseByIncidentType(responses, searchName);
+                                    break;
+                                }
+                                case 3: {
+                                     cout << "Enter Incident Location to Search:\n";
+                                    getline(cin, searchName);
+                                    searchResponseByLocation(responses, searchName);
+                                    break;
+                                }
+                                case 4: {
+                                     cout << "Enter Reported Time to Search:\n";
+                                    getline(cin, searchName);
+                                    searchResponseByReportedTime(responses, searchName);
+                                    break;
+                                }
+                                case 5: {
+                                     cout << "Enter Resolved Time to Search:\n";
+                                    getline(cin, searchName);
+                                    searchResponseByResolvedTime(responses, searchName);
+                                    break;
+                                }
+                                case 6: {
+                                     cout << "Enter Officer ID to Search Responses:\n";
+                                    getline(cin, searchID);
+                                    searchResponseByOfficerID(responses, searchID);
+                                    break;
+                                }
+                                case 7: {
+                                     cout << "Enter Station ID to Search Responses:\n";
+                                    getline(cin, searchID);
+                                    searchResponseByStationID(responses, searchID);
+                                    break;
+                                }
+                                case 99:{
+                                     cout << "Returning to Responses Menu:\n";
+                                    break;
+                                }
+                                default:{
+                                    cout << "Invalid Search Option. Try again.\n";
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }while(innerChoice1!=99);
+                break;
+            }
+            case 9: { // Jail Records
+                cout << "Jail Menu\n";
+                do{
+                    //inner menu for jail
+                    cout << "\n Jail Menu\n";
+                    cout << "1. Display Jail Records\n";
+                    cout << "2. Search in Jail Records\n";
+                    cout << "99. Go back to Main Menu\n";
+                    cout << "Enter your choice: ";
+                    cin >> innerChoice1;
+                    cin.ignore(); // To prevent input issues with getline
+                    switch (innerChoice1) {
+                        case 1: { // Display Jail Records
+                            displayJailRecords(jailRecords);
+                            break;
+                        }
+                        case 2: {
+                            cout << "Select Search Option:\n";
+                            cout << "1. Search by ID\n";
+                            cout << "2. Search by Name\n";
+                            cout << "3. Search by Arrest Date\n";
+                            cout << "4. Search by Date of Release\n";
+                            cout << "99. Go back to Jail Menu\n";
+                            cout << "Enter your choice: ";
+                            cin >> innerChoice2;
+                            cin.ignore(); // To prevent input issues with getline
+                            switch (innerChoice2) {
+                                case 1: {
+                                     cout << "Enter  ID to Search:\n";
+                                    getline(cin, searchID);
+                                    searchCriminalByID(jailRecords, searchID);
+                                    break;
+                                }
+                                case 2: {
+                                     cout << "Enter Name to Search:\n";
+                                    getline(cin, searchName);
+                                    searchCriminalByName(jailRecords, searchName);
+                                    break;
+                                }
+                                case 3: {
+                                     cout << "Enter Arrest Date to Search:\n";
+                                    getline(cin, searchName);
+                                    searchCriminalByArrestDate(jailRecords, searchName);
+                                    break;
+                                }
+                                case 4: {
+                                     cout << "Enter Date of Release to Search:\n";
+                                    getline(cin, searchName);
+                                    searchCriminalByReleaseDate(jailRecords, searchName);
+                                    break;
+                                }
+                            }
+                            break;
+                        }
+                    }
+                }while(innerChoice1!=99);
+                break;
+            }
+            case 0:
+                cout << "Exiting the program. Goodbye!\n";
+                break;
+
+            case 99:
+                cout << "Exiting the program. Goodbye!\n";
+                break;
+
+            default:
+                cout << "Invalid choice in Main Menu. Try again.\n";
+                break;
+        }
+    } while (outerChoice != 0);
+
+        return 0;
+}
+
